@@ -1,0 +1,12 @@
+#whiteboard {
+  float: left;
+  border: 1px solid #666;
+  background-color: #ddd;
+}
+
+#info {
+  float: left;
+  margin-left: 10px;
+  white-space: pre;
+}
+
