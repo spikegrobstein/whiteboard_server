@@ -7,6 +7,10 @@ config :server,
   port: 8888,
   acceptors: 100,
   max_connections: 10000
+  dispatch: [{ :_, [
+    {"/websocket", WhiteboardServer.Websocket, [] },
+    {:_, Dynamo.Cowboy.Handler, __MODULE__ }
+  ] }]
 
 # config :ssl,
 #  port: 8889,
