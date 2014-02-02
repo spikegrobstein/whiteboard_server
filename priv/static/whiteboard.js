@@ -176,7 +176,7 @@
   global.WhiteboardClient = WhiteboardClient;
   global.Whiteboard = Whiteboard;
 
-  global.whiteboard = new Whiteboard( 'ws://192.168.2.145:4000/websocket?user=spike', document.getElementById('whiteboard') );
+  global.whiteboard = new Whiteboard( 'ws://' + window.location.host + '/websocket' + window.location.search, document.getElementById('whiteboard') );
 
 
   return;

@@ -12,14 +12,11 @@ defmodule ApplicationRouter do
   # routers, forwarding the requests between them:
   # forward "/posts", to: PostsRouter
 
-  # get "/" do
-    # conn = conn.assign(:title, "Welcome to Dynamo!")
-    # render conn, "index.html"
-  # end
-
   get "/" do
-    redirect "/static/index.html"
+    conn = conn.assign(:title, "Welcome to Dynamo!")
+    render conn, "index.html"
   end
+
 
   get "/join/:user" do
     :gen_server.cast( :client_store, { :broadcast, [ :join, conn.params[:user] ] } )

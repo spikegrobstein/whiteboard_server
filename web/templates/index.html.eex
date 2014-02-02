@@ -1,15 +1,16 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <title><%= @title %></title>
+  <title>Whiteboard</title>
   <link rel="shortcut icon" href="/static/favicon.ico" />
 </head>
 <body>
-  <h3>Welcome to Dynamo!</h3>
-  <ol>
-    <li>Change this template at <code>web/templates/index.html.eex</code></li>
-    <li>Add new routes at <code>web/routers/application_router.ex</code></li>
-    <li>Deploy to production with <code>MIX_ENV=prod mix do compile, server</code></li>
-  </ol>
+  <h3>Welcome to Whiteboard :)</h3>
+  <form action="/static/index.html">
+    <label>Nick:</label>
+    <input type="text" name="user" value="anon" />
+
+    <input type="submit" />
+  </form>
 </body>
 </html>
