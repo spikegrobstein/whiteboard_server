@@ -127,6 +127,10 @@
   Whiteboard.prototype.handleTouchMove = function( event ) {
     event.preventDefault();
 
+    var touch = event.changedTouches[0];
+
+    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+
   };
 
   Whiteboard.prototype.handleMouseDown = function( event ) {
