@@ -20,7 +20,7 @@ defmodule WhiteboardServer.Websocket do
   end
 
   def websocket_info({ :message, message }, req, state) do
-    IO.puts("websocket_info: #{ inspect message }")
+    # IO.puts("websocket_info: #{ inspect message }")
     { :reply, { :text, message }, req, state }
   end
 
@@ -28,7 +28,7 @@ defmodule WhiteboardServer.Websocket do
     { :ok, data } = JSON.decode( message )
 
     :gen_server.cast( :client_store, { :broadcast, data } )
-    IO.puts "Got: #{ inspect data }"
+    # IO.puts "Got: #{ inspect data }"
 
     { :reply, { :text, message }, req, state }
   end
