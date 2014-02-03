@@ -1,5 +1,7 @@
 # some spec
 
+all communication is done via a websocket from the browser to the server. The data format is JSON.
+
 ## receiving
 
 when receiving, the packets should look like:
@@ -84,4 +86,44 @@ Data:
     }
 
 The user who lifted his pen.
+
+## Sending
+
+This is the format of packets that are sent from the client to the server
+
+Base structure (same as receiving):
+
+    {
+      event: <event>,
+      data: <data>
+    }
+
+Where `<event>` is the name of the action and data is packet-specific.
+
+The types of events:
+
+ * `pen_up`
+ * `draw`
+
+### pen_up
+
+Sent when the user stops drawing.
+
+no data is sent with this. it just signals the server that the user stopped drawing.
+
+### draw
+
+sent with the current X/Y of the draw event.
+
+Data:
+
+    {
+      x: <x>,
+      y: <y>,
+      penWidth: <penWidth>,
+      penColor: <penColor>
+    }
+
+See description of received `draw` events.
+
 
