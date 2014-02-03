@@ -146,6 +146,11 @@
     event.preventDefault();
 
     this.mouseDown = true;
+
+    var x = event.x,
+        y = event.y;
+
+    this.sendDrawEvent( 'mouse', x, y );
   };
 
   Whiteboard.prototype.handleMouseUp = function( event ) {
