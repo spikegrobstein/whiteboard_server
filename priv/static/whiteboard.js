@@ -191,19 +191,19 @@
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
     var ctx = this.whiteboard.getContext('2d');
 
-    ctx.fillStyle = "#" + this.penColor;
+    ctx.fillStyle = "#" + message.penColor;
     // ctx.fillRect( message.x, message.y, 2, 2 );
 
     ctx.beginPath();
     if ( this.lastX !== null ) {
       ctx.moveTo(this.lastX, this.lastY);
       ctx.lineTo(message.x, message.y);
-      ctx.lineWidth = this.penWidth;
-      ctx.strokeStyle = "#" + this.penColor;
+      ctx.lineWidth = message.penWidth;
+      ctx.strokeStyle = "#" + message.penColor;
       ctx.stroke();
     }
 
-    ctx.arc(message.x, message.y, this.penWidth / 2, 0,2*Math.PI, false);
+    ctx.arc(message.x, message.y, message.penWidth / 2, 0,2*Math.PI, false);
     ctx.fill();
 
 
