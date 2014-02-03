@@ -27,6 +27,8 @@ defmodule WhiteboardServer.Websocket do
   def websocket_handle({ :text, message }, req, state) do
     { :ok, data } = JSON.decode( message )
 
+    data = HashDict.put_new( data, :user, inspect(self) )
+
     :gen_server.cast( :client_store, { :broadcast, data } )
     # IO.puts "Got: #{ inspect data }"
 
