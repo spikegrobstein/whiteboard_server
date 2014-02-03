@@ -100,8 +100,8 @@
     this.penWidth = 4;
     this.penColor = "FF0000";
 
-    this.lastX = null;
-    this.lastY = null;
+    // this.lastX = null;
+    // this.lastY = null;
 
     this.initialize();
   };
@@ -134,8 +134,8 @@
   Whiteboard.prototype.handleTouchEnd = function( event ) {
     event.preventDefault();
 
-    this.lastX = null;
-    this.lastY = null;
+    // this.lastX = null;
+    // this.lastY = null;
   };
 
   Whiteboard.prototype.handleTouchMove = function( event ) {
@@ -162,8 +162,7 @@
     event.preventDefault();
 
     this.mouseDown = false;
-    this.lastX = null;
-    this.lastY = null;
+
   };
 
   Whiteboard.prototype.handleMouseMove = function( event ) {
@@ -195,20 +194,20 @@
     // ctx.fillRect( message.x, message.y, 2, 2 );
 
     ctx.beginPath();
-    if ( this.lastX !== null ) {
-      ctx.moveTo(this.lastX, this.lastY);
-      ctx.lineTo(message.x, message.y);
-      ctx.lineWidth = message.penWidth;
-      ctx.strokeStyle = "#" + message.penColor;
-      ctx.stroke();
-    }
+    // if ( this.lastX !== null ) {
+      // ctx.moveTo(this.lastX, this.lastY);
+      // ctx.lineTo(message.x, message.y);
+      // ctx.lineWidth = message.penWidth;
+      // ctx.strokeStyle = "#" + message.penColor;
+      // ctx.stroke();
+    // }
 
     ctx.arc(message.x, message.y, message.penWidth / 2, 0,2*Math.PI, false);
     ctx.fill();
 
 
-    this.lastX = message.x;
-    this.lastY = message.y;
+    // this.lastX = message.x;
+    // this.lastY = message.y;
   };
 
   global.MessageBus = MessageBus;
