@@ -88,11 +88,17 @@
 
   var Whiteboard = function( host, element ) {
     this.whiteboard = element;
-    this.messageBus = new MessageBus().subscribe( 'update', this.handleUpdate );
+    this.messageBus = new MessageBus()
+                            .subscribe( 'update', this.handleUpdate )
+                            .subscribe( 'set_penColor', this.handleSetPenColor )
+                            .subscribe( 'set_penWidth', this.handleSetPenWidth );
 
     this.client = new WhiteboardClient( host, this.messageBus );
 
     this.mouseDown = false;
+
+    this.penWidth = 4;
+    this.penColor = "FF0000";
 
     this.initialize();
   };
@@ -117,6 +123,9 @@
   Whiteboard.prototype.handleTouchStart = function( event ) {
     event.preventDefault();
 
+    var touch = event.changedTouches[0];
+
+    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
   };
 
   Whiteboard.prototype.handleTouchEnd = function( event ) {
@@ -161,18 +170,20 @@
     this.messageBus.broadcast( 'draw', {
       pointer: pointer,
       x: x,
-      y: y
+      y: y,
+      penWidth: this.penWidth,
+      penColor: this.penColor
     } );
   };
 
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
     var ctx = this.whiteboard.getContext('2d');
 
-    // ctx.fillStyle = "#FF0000";
+    ctx.fillStyle = "#" + this.penColor;
     // ctx.fillRect( message.x, message.y, 2, 2 );
 
     ctx.beginPath();
-    ctx.arc(message.x, message.y, 4, 0,2*Math.PI, false);
+    ctx.arc(message.x, message.y, this.penWidth, 0,2*Math.PI, false);
     ctx.fill();
   };
 
