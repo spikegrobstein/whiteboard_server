@@ -1,7 +1,11 @@
+body {
+  margin: 0; padding: 0;
+  background-color: #ddd;
+}
+
 #whiteboard {
   float: left;
-  border: 1px solid #666;
-  background-color: #ddd;
+  background-color: #fff;
 }
 
 #info {
