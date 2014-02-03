@@ -27,6 +27,7 @@ defmodule WhiteboardServer.Websocket do
   def websocket_handle({ :text, message }, req, state) do
     { :ok, data } = JSON.decode( message )
 
+    # TODO: include the nick or something, rather than an inspected pid
     data = HashDict.put_new( data, :user, inspect(self) )
 
     :gen_server.cast( :client_store, { :broadcast, data } )
