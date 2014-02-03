@@ -198,6 +198,24 @@
 
   global.whiteboard = new Whiteboard( 'ws://' + window.location.host + '/websocket' + window.location.search, document.getElementById('whiteboard') );
 
+  // TODO: rewrite all this shit here. leverage some messageBus goodness.
+  document.getElementById('pen-width-input').addEventListener( 'input', function() {
+    var value = this.value;
+
+    value = parseInt(value);
+
+    if ( value > 0 ) {
+      global.whiteboard.penWidth = value;
+    }
+  });
+
+  document.getElementById('pen-color-input').addEventListener( 'input', function() {
+    var value = this.value;
+
+    if ( value.match(/^[a-f0-9]{6}/i) ) {
+      global.whiteboard.penColor = value;
+    }
+  });
 
   return;
 
