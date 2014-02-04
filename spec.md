@@ -2,7 +2,7 @@
 
 all communication is done via a websocket from the browser to the server. The data format is JSON.
 
-## receiving
+## receiving (client)
 
 when receiving, the packets should look like:
 
@@ -87,7 +87,7 @@ Data:
 
 The user who lifted his pen.
 
-## Sending
+## Sending (server)
 
 This is the format of packets that are sent from the client to the server
 
