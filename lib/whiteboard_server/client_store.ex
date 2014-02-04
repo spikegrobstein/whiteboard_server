@@ -1,5 +1,3 @@
-require IEx
-
 defmodule WhiteboardServer.ClientStore do
   use GenServer.Behaviour
 
@@ -45,15 +43,25 @@ defmodule WhiteboardServer.ClientStore do
     nick
   end
 
+  @doc """
+    recieves a packet, parses it and routes it accordingly
+  """
   def handle_packet( clients, pid, packet ) do
     { event, payload } = parse_packet( packet )
 
     case event do
-      "draw" ->
-        IO.puts "got draw event"
       "user_list" ->
         IO.inspect clients
         send_user_list( pid, clients )
+      "draw" ->
+        IO.puts "got draw event"
+        broadcast_draw( clients, pid, payload )
+      "pen_up" ->
+        # received when a client stops drawing
+        # this is broadcast to all clients that the user
+        # stopped so they can clear local pen values for that user
+        # payload is ignored
+        broadcast_pen_up( clients, pid )
       _ ->
         IO.puts "got something else: #{ event }"
         send_unknown_packet_error( pid, event, payload )
@@ -105,6 +113,27 @@ defmodule WhiteboardServer.ClientStore do
     clients
   end
 
+  defp broadcast_draw( clients, source_pid, payload ) do
+
+    draw_payload = HashDict.put( payload, :userId, inspect(source_pid) )
+
+    IO.inspect( draw_payload )
+
+    Enum.each( clients, fn({pid, nick}) ->
+      send pid, make_packet( "draw", draw_payload )
+    end )
+  end
+
+  @doc """
+    notify all connected clients that the user lifted their pen
+    this is sent to everyone
+  """
+  defp broadcast_pen_up( clients, source_pid ) do
+    Enum.each( clients, fn({pid, nick}) ->
+      send pid, make_packet( "pen_up", [ userId: inspect(source_pid) ] )
+    end )
+  end
+
   @doc """
     given an event (as a string) and data (as a tuple or hash)
     return a JSON packet that's suitable to be sent over the wire
@@ -118,8 +147,8 @@ defmodule WhiteboardServer.ClientStore do
   end
 
   defp send_user_list( pid, clients ) do
-    user_list = Enum.map( clients, fn({ _pid, nick }) -> nick end)
-    send pid, make_packet( "user_list2", user_list )
+    user_list = Enum.map( clients, fn({ pid, nick }) -> [ userId: inspect(pid), nick: nick ] end)
+    send pid, make_packet( "user_list", user_list )
   end
 
   defp send_unknown_packet_error( pid, event, payload ) do

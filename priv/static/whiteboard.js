@@ -11,12 +11,12 @@
     this.subscribers = {};
   };
 
-  MessageBus.prototype.subscribe = function( messageType, subscriber, handler ) {
+  MessageBus.prototype.subscribe = function( messageType, handler ) {
     if ( typeof this.subscribers[messageType] === 'undefined' ) {
-      this.subscribers[messageType] = {};
+      this.subscribers[messageType] = [];
     }
 
-    this.subscribers[messageType][subscriber] = handler;
+    this.subscribers[messageType].push(handler);
 
     return this;
   };
@@ -25,10 +25,12 @@
     var subscribers = this.subscribers[messageType];
 
     // if there's no subscribers
-    if ( typeof subscribers == 'undefined' || subscribers.length == 0 ) {
+    if ( typeof subscribers === 'undefined' || subscribers.length === 0 ) {
       console.log( 'not able to broadcast ' + messageType + ' because of no subscribers' );
       return;
     }
+
+    console.log("going to broadcast to " + messageType, subscribers);
 
     for( subscriber in subscribers ) {
       // console.log({"broadcasting to": subscribers[subscriber], "message": message});
@@ -38,7 +40,7 @@
 
   var WhiteboardClient = function( host, messageBus ) {
     this.messageBus = messageBus
-                        .subscribe( 'draw', this, this.receiveDraw.bind(this) );
+                        .subscribe( 'draw', this.receiveDraw.bind(this) );
                         // .subscribe( 'update', this, this.receiveUpdate.bind(this) );
 
     this.connect( host );
@@ -50,17 +52,39 @@
 
     this.ws = new WebSocket( host );
 
+    // handle the connection to the server
+    // request the user list
     this.ws.onopen = function() {
       console.log('connected websocket!')
       self.requestUserList();
     };
+
     this.ws.onclose = function() { console.log('lost connection to websocket!') };
+
+    // handle receiving a message.
     this.ws.onmessage = function(msg) {
-      var data = JSON.parse(msg.data);
+      var data = JSON.parse(msg.data),
+          event = data.event,
+          payload = data.payload;
 
-      console.log(data);
+      switch (event) {
+      case "user_list":
+        self.messageBus.broadcast('receive_user_list', payload);
+        break;
 
-      global.whiteboard.handleUpdate( 'draw', data );
+      case "draw":
+        self.messageBus.broadcast('receive_draw', payload);
+        break;
+
+      case "pen_up":
+        self.messageBus.broadcast('receive_pen_up', payload);
+        break;
+
+      default:
+        console.log("got unknown packet type: " + event);
+      }
+
+      // global.whiteboard.handleUpdate( 'draw', data );
     };
   };
 
@@ -68,12 +92,12 @@
     this.send( 'user_list', {} );
   }
 
-  WhiteboardClient.prototype.send = function( messageType, message ) {
+  WhiteboardClient.prototype.send = function( event, payload) {
     delete message.pointer;
 
     var packet = {
-      event: messageType,
-      payload: message
+      event: event,
+      payload: payload
     };
 
     this.ws.send( JSON.stringify(packet) );
@@ -88,11 +112,6 @@
     this.sendDraw( message );
   };
 
-  WhiteboardClient.prototype.receiveUpdate = function( messageType, message ) {
-
-    return this;
-  };
-
   // send a draw message back up to the server
   WhiteboardClient.prototype.sendDraw = function( message ) {
     this.send( 'draw', message );
@@ -103,9 +122,10 @@
   var Whiteboard = function( host, element ) {
     this.whiteboard = element;
     this.messageBus = new MessageBus()
-                            .subscribe( 'update', this.handleUpdate )
-                            .subscribe( 'set_penColor', this.handleSetPenColor )
-                            .subscribe( 'set_penWidth', this.handleSetPenWidth );
+                            .subscribe( 'receive_draw',   this.handleUpdate )
+                            .subscribe( 'receive_pen_up', this.handlePenUp )
+                            .subscribe( 'set_penColor',   this.handleSetPenColor )
+                            .subscribe( 'set_penWidth',   this.handleSetPenWidth );
 
     this.client = new WhiteboardClient( host, this.messageBus );
 
@@ -113,6 +133,8 @@
 
     this.penWidth = 4;
     this.penColor = "FF0000";
+
+    this.penStatuses = {}; // hash keyed by userId
 
     // this.lastX = null;
     // this.lastY = null;
@@ -202,26 +224,32 @@
   };
 
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
-    var ctx = this.whiteboard.getContext('2d');
+    console.log('update...');
+    var ctx = this.whiteboard.getContext('2d'),
+        last = this.penStatuses[message.userId];
 
     ctx.fillStyle = "#" + message.penColor;
     // ctx.fillRect( message.x, message.y, 2, 2 );
 
     ctx.beginPath();
-    // if ( this.lastX !== null ) {
-      // ctx.moveTo(this.lastX, this.lastY);
-      // ctx.lineTo(message.x, message.y);
-      // ctx.lineWidth = message.penWidth;
-      // ctx.strokeStyle = "#" + message.penColor;
-      // ctx.stroke();
-    // }
+    if ( last ) {
+      ctx.moveTo(last.x, last.y);
+      ctx.lineTo(message.x, message.y);
+      ctx.lineWidth = message.penWidth;
+      ctx.strokeStyle = "#" + message.penColor;
+      ctx.stroke();
+    }
 
     ctx.arc(message.x, message.y, message.penWidth / 2, 0,2*Math.PI, false);
     ctx.fill();
 
+    this.penStatuses[message.userId] = { x: message.x, y: message.y };
+  };
 
-    // this.lastX = message.x;
-    // this.lastY = message.y;
+  Whiteboard.prototype.handlePenUp = function( messageType, message ) {
+    var userId = message.userId;
+
+    delete this.penStatuses[userId];
   };
 
   global.MessageBus = MessageBus;
@@ -229,6 +257,10 @@
   global.Whiteboard = Whiteboard;
 
   global.whiteboard = new Whiteboard( 'ws://' + window.location.host + '/websocket' + window.location.search, document.getElementById('whiteboard') );
+
+  global.whiteboard.messageBus.subscribe( 'receive_user_list', function( event, payload ) {
+    console.log({got_user_list: payload});
+  });
 
   // TODO: rewrite all this shit here. leverage some messageBus goodness.
   document.getElementById('pen-width-input').addEventListener( 'input', function() {
