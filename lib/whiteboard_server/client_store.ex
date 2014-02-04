@@ -1,3 +1,5 @@
+require IEx
+
 defmodule WhiteboardServer.ClientStore do
   use GenServer.Behaviour
 
@@ -13,6 +15,10 @@ defmodule WhiteboardServer.ClientStore do
     { :reply, clients, clients }
   end
 
+  def handle_call( :get_nick, from, clients ) do
+    { :reply, client_for_pid(clients, from), clients }
+  end
+
   def handle_cast( { :add_client, { pid, nick } }, clients ) do
     { :noreply, add_client( clients, { pid, nick } ) }
   end
@@ -25,6 +31,42 @@ defmodule WhiteboardServer.ClientStore do
     { :noreply, broadcast( clients, message ) }
   end
 
+  def handle_cast( { :handle_packet, pid, packet }, clients ) do
+    handle_packet( clients, pid, packet )
+    { :noreply, clients }
+  end
+
+  defp client_for_pid( clients, pid ) do
+    result = Enum.find( clients, fn(x) ->
+      { ^pid, nick } = x
+    end)
+
+    { pid, nick } = result
+    nick
+  end
+
+  def handle_packet( clients, pid, packet ) do
+    { event, payload } = parse_packet( packet )
+
+    case event do
+      "draw" ->
+        IO.puts "got draw event"
+      "user_list" ->
+        IO.inspect clients
+        send_user_list( pid, clients )
+      _ ->
+        IO.puts "got something else: #{ event }"
+        send_unknown_packet_error( pid, event, payload )
+    end
+  end
+
+  defp parse_packet( packet ) do
+    { :ok, event } = HashDict.fetch( packet, "event" )
+    { :ok, payload } = HashDict.fetch( packet, "payload" )
+
+    { event, payload }
+  end
+
   # add a new client
   # new client is a tuple that contains
   # client atom
@@ -35,6 +77,9 @@ defmodule WhiteboardServer.ClientStore do
 
     # broadcast that a user joined.
     broadcast( clients, { :user_join, nick } )
+
+    # send the client the user_list
+    # send new_pid, make_packet( "user_list", clients )
 
     if Enum.any?( clients, fn({ pid, _nick }) -> pid == new_pid end ) do
       clients
@@ -59,4 +104,26 @@ defmodule WhiteboardServer.ClientStore do
 
     clients
   end
+
+  @doc """
+    given an event (as a string) and data (as a tuple or hash)
+    return a JSON packet that's suitable to be sent over the wire
+  """
+  defp make_packet( event, payload ) do
+    new_packet = [ event: event, payload: payload ]
+
+    { :ok, json_packet } = JSON.encode( new_packet )
+
+    { :message, json_packet }
+  end
+
+  defp send_user_list( pid, clients ) do
+    user_list = Enum.map( clients, fn({ _pid, nick }) -> nick end)
+    send pid, make_packet( "user_list2", user_list )
+  end
+
+  defp send_unknown_packet_error( pid, event, payload ) do
+    send pid, make_packet( "unknown_packet", [ event: event, payload: payload ] )
+  end
+
 end

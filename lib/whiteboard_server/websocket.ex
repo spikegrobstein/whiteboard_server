@@ -12,8 +12,10 @@ defmodule WhiteboardServer.Websocket do
 
   def websocket_init(_transport_name, req, _opts) do
 
+    # read the user field from URL
     { user, _ } = :cowboy_req.qs_val("user", req, "anon")
 
+    # add the client to the client store
     :gen_server.cast( :client_store, { :add_client, { self, user } })
 
     { :ok, req, :no_state }
@@ -27,11 +29,9 @@ defmodule WhiteboardServer.Websocket do
   def websocket_handle({ :text, message }, req, state) do
     { :ok, data } = JSON.decode( message )
 
-    # TODO: include the nick or something, rather than an inspected pid
-    data = HashDict.put_new( data, :user, inspect(self) )
+    :gen_server.cast( :client_store, { :handle_packet, self, data } )
 
-    :gen_server.cast( :client_store, { :broadcast, data } )
-    # IO.puts "Got: #{ inspect data }"
+    # :gen_server.cast( :client_store, { :broadcast, data } )
 
     { :reply, { :text, message }, req, state }
   end

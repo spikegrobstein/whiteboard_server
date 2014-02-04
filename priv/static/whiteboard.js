@@ -45,24 +45,38 @@
   };
 
   WhiteboardClient.prototype.connect = function( host ) {
-    var messageBus = this.messageBus;
+    var messageBus = this.messageBus,
+        self = this;
 
     this.ws = new WebSocket( host );
 
-    this.ws.onopen = function() { console.log('connected websocket!') };
+    this.ws.onopen = function() {
+      console.log('connected websocket!')
+      self.requestUserList();
+    };
     this.ws.onclose = function() { console.log('lost connection to websocket!') };
     this.ws.onmessage = function(msg) {
       var data = JSON.parse(msg.data);
+
+      console.log(data);
 
       global.whiteboard.handleUpdate( 'draw', data );
     };
   };
 
+  WhiteboardClient.prototype.requestUserList = function() {
+    this.send( 'user_list', {} );
+  }
+
   WhiteboardClient.prototype.send = function( messageType, message ) {
-    message.type = messageType;
     delete message.pointer;
 
-    this.ws.send( JSON.stringify(message) );
+    var packet = {
+      event: messageType,
+      payload: message
+    };
+
+    this.ws.send( JSON.stringify(packet) );
 
     return this;
   };

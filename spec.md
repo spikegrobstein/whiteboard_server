@@ -8,7 +8,7 @@ when receiving, the packets should look like:
 
     {
       event: <event>,
-      data: <data>
+      payload: <data>
     }
 
 types of packets:
@@ -95,21 +95,22 @@ Base structure (same as receiving):
 
     {
       event: <event>,
-      data: <data>
+      payload: <data>
     }
 
-Where `<event>` is the name of the action and data is packet-specific.
+Where `<event>` is the name of the action and payload is packet-specific.
 
 The types of events:
 
  * `pen_up`
  * `draw`
+ * `user_list`
 
 ### pen_up
 
 Sent when the user stops drawing.
 
-no data is sent with this. it just signals the server that the user stopped drawing.
+no payload is sent with this. it just signals the server that the user stopped drawing.
 
 ### draw
 
@@ -126,4 +127,17 @@ Data:
 
 See description of received `draw` events.
 
+### user_list
+
+Client is requesting a user list. no payload. server should send the `user_list` packet back.
+
+## internal processes
+
+this is proof of concept
+
+message comes in to websocket and is sent to message processor via `route/2`. It takes the parsed message along with `self`.
+
+From there, the router will parse the content of the message and do the appropriate thing. For instance
+if the message is a `draw` event, it will push it to the broadcaster; or if it's a `get_users` message,
+it'll send out a `user_list` message.
 
