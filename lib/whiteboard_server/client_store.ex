@@ -83,11 +83,7 @@ defmodule WhiteboardServer.ClientStore do
   # prevents duplicate pids
   defp add_client( clients, { new_pid, nick } ) do
 
-    # broadcast that a user joined.
-    broadcast( clients, { :user_join, nick } )
-
-    # send the client the user_list
-    # send new_pid, make_packet( "user_list", clients )
+    send_user_join( clients, new_pid, nick )
 
     if Enum.any?( clients, fn({ pid, _nick }) -> pid == new_pid end ) do
       clients
@@ -99,7 +95,10 @@ defmodule WhiteboardServer.ClientStore do
   # delete a client based on the pid
   defp del_client( clients, pid_to_delete ) do
     IO.puts "removing client: #{ inspect pid_to_delete }"
-    Enum.reject( clients, fn({ pid, _nick}) -> pid_to_delete == pid end )
+
+    new_clients = Enum.reject( clients, fn({ pid, _nick}) -> pid_to_delete == pid end )
+
+    send_user_part( new_clients, pid_to_delete )
   end
 
   # iterate over all clients, sending the given message
@@ -149,6 +148,22 @@ defmodule WhiteboardServer.ClientStore do
   defp send_user_list( pid, clients ) do
     user_list = Enum.map( clients, fn({ pid, nick }) -> [ userId: inspect(pid), nick: nick ] end)
     send pid, make_packet( "user_list", user_list )
+  end
+
+  defp send_user_join( clients, new_pid, new_nick ) do
+    payload = [ userId: inspect(new_pid), nick: new_nick ]
+
+    Enum.each( clients, fn({ pid, _nick }) ->
+      send pid, make_packet( "user_join", payload )
+    end )
+  end
+
+  defp send_user_part( clients, old_pid ) do
+    payload = [ userId: inspect(old_pid) ]
+
+    Enum.each( clients, fn({ pid, _nick }) ->
+      send pid, make_packet( "user_part", payload )
+    end )
   end
 
   defp send_unknown_packet_error( pid, event, payload ) do

@@ -20,3 +20,17 @@ canvas#whiteboard {
   -moz-border-radius-bottomright: 10px;
   border-bottom-right-radius: 10px;
 }
+
+#user-list {
+  margin: 0;
+  padding: 0;
+}
+
+#user-list li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  margin-left: 10px;
+}
+

@@ -77,6 +77,14 @@
         this.messageBus.broadcast('receive_pen_up', payload);
         break;
 
+      case "user_join":
+        this.messageBus.broadcast('receive_user_join', payload);
+        break;
+
+      case "user_part":
+        this.messageBus.broadcast('receive_user_part', payload);
+        break;
+
       default:
         console.log("got unknown packet type: " + event);
       }
@@ -264,9 +272,32 @@
 
   global.whiteboard = new Whiteboard( 'ws://' + window.location.host + '/websocket' + window.location.search, document.getElementById('whiteboard') );
 
-  global.whiteboard.messageBus.subscribe( 'receive_user_list', function( event, payload ) {
-    console.log({got_user_list: payload});
+  global.whiteboard.messageBus.subscribe( 'receive_user_list', function( _event, users ) {
+    console.log({got_user_list: users});
+
+    var i, user;
+
+    for ( i in users ) {
+      user = users[i];
+      addUser( user );
+    }
+  })
+  .subscribe( 'receive_user_join', function( _event, userInfo ) {
+    addUser(userInfo);
+  })
+  .subscribe( 'receive_user_part', function( _event, userInfo) {
+    removeUser(userInfo);
   });
+
+  function addUser( user ) {
+    var user_list_ele = document.getElementById('user-list');
+
+    user_list_ele.innerHTML += '<li data-user-id="' + user.userId + '">' + user.nick + '</li>';
+  }
+
+  function removeUser( user ) {
+    console.log("delete user: " + user.userId);
+  }
 
   var control_toggle_btn = document.getElementById('hideshow'),
       tools_ele = document.getElementById('form');
