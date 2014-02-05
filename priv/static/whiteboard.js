@@ -142,9 +142,6 @@
         fullsizeWidth = body.offsetWidth,
         fullsizeHeight = window.innerHeight;
 
-    console.log(fullsizeWidth);
-    console.log(fullsizeHeight);
-
     this.whiteboard.width = fullsizeWidth;
     this.whiteboard.height = fullsizeHeight;
   };
@@ -185,10 +182,7 @@
 
     var touch = event.changedTouches[0];
 
-    console.log(touch);
-
     this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
-
   };
 
   Whiteboard.prototype.handleMouseDown = function( event ) {
