@@ -290,13 +290,18 @@
   });
 
   function addUser( user ) {
-    var user_list_ele = document.getElementById('user-list');
+    var user_list_ele = document.getElementById('user-list'),
+        userId = user.userId.replace(/[^a-z0-9]/ig, '');
 
-    user_list_ele.innerHTML += '<li data-user-id="' + user.userId + '">' + user.nick + '</li>';
+    user_list_ele.innerHTML += '<li id="' + userId + '">' + user.nick + '</li>';
   }
 
   function removeUser( user ) {
-    console.log("delete user: " + user.userId);
+    var userListEle = document.getElementById('user-list'),
+        userId = user.userId.replace(/[^a-z0-9]/ig, ''),
+        userEle = document.getElementById(userId);
+
+    userListEle.removeChild( userEle );
   }
 
   var control_toggle_btn = document.getElementById('hideshow'),
