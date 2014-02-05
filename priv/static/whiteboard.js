@@ -132,15 +132,29 @@
     // store where each user's pen is (for connecting lines)
     this.penStatuses = {}; // hash keyed by userId
 
-    this.initialize();
+    this.resizeWhiteboard();
+    this.initializeListeners();
+  };
+
+  Whiteboard.prototype.resizeWhiteboard = function() {
+    // resize the canvas a bit
+    var body = document.getElementsByTagName('body')[0],
+        fullsizeWidth = body.offsetWidth,
+        fullsizeHeight = window.innerHeight;
+
+    console.log(fullsizeWidth);
+    console.log(fullsizeHeight);
+
+    this.whiteboard.width = fullsizeWidth;
+    this.whiteboard.height = fullsizeHeight;
   };
 
   Whiteboard.prototype.handle = function( eventName, callback ) {
     this.whiteboard.addEventListener( eventName, callback, false );
   };
 
-  // hook into all the event listeners
-  Whiteboard.prototype.initialize = function() {
+  // hook into all the event handlers
+  Whiteboard.prototype.initializeListeners = function() {
     // touch
     this.handle( 'touchstart', this.handleTouchStart.bind(this) );
     this.handle( 'touchend',   this.handleTouchEnd.bind(this)   );
@@ -157,7 +171,7 @@
 
     var touch = event.changedTouches[0];
 
-    this.sendDrawEvent( 'touch', touch.offsetX, touch.offsetY );
+    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
   };
 
   Whiteboard.prototype.handleTouchEnd = function( event ) {
@@ -171,7 +185,9 @@
 
     var touch = event.changedTouches[0];
 
-    this.sendDrawEvent( 'touch', touch.offsetX, touch.offsetY );
+    console.log(touch);
+
+    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
 
   };
 
@@ -180,8 +196,8 @@
 
     this.mouseDown = true;
 
-    var x = event.offsetX,
-        y = event.offsetY;
+    var x = event.clientX,
+        y = event.clientY;
 
     this.sendDrawEvent( 'mouse', x, y );
   };
@@ -200,8 +216,8 @@
     // if the mouse isn't down, it's not a drag event.
     if ( ! this.mouseDown ) { return; }
 
-    var x = event.offsetX,
-        y = event.offsetY;
+    var x = event.clientX,
+        y = event.clientY;
 
     this.sendDrawEvent( 'mouse', x, y );
   };
@@ -272,6 +288,7 @@
       global.whiteboard.penColor = value;
     }
   });
+
 
   return;
 
