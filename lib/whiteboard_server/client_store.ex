@@ -99,6 +99,8 @@ defmodule WhiteboardServer.ClientStore do
     new_clients = Enum.reject( clients, fn({ pid, _nick}) -> pid_to_delete == pid end )
 
     send_user_part( new_clients, pid_to_delete )
+
+    new_clients
   end
 
   # iterate over all clients, sending the given message
