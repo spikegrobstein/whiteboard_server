@@ -240,7 +240,11 @@
 
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
     var ctx = this.whiteboard.getContext('2d'),
-        last = this.penStatuses[message.userId];
+        last = this.penStatuses[message.userId],
+        userId = message.userId.replace(/[^a-z0-9]/ig, ''),
+        userEle = document.getElementById(userId);
+
+    userEle.style.backgroundColor = "#" + message.penColor;
 
     ctx.fillStyle = "#" + message.penColor;
     // ctx.fillRect( message.x, message.y, 2, 2 );
@@ -261,7 +265,11 @@
   };
 
   Whiteboard.prototype.handlePenUp = function( messageType, message ) {
-    var userId = message.userId;
+    var userId = message.userId
+        userEleId = message.userId.replace(/[^a-z0-9]/ig, ''),
+        userEle = document.getElementById(userEleId);
+
+    userEle.style.backgroundColor = "transparent";
 
     delete this.penStatuses[userId];
   };
