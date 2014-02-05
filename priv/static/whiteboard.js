@@ -157,7 +157,7 @@
 
     var touch = event.changedTouches[0];
 
-    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+    this.sendDrawEvent( 'touch', touch.offsetX, touch.offsetY );
   };
 
   Whiteboard.prototype.handleTouchEnd = function( event ) {
@@ -171,7 +171,7 @@
 
     var touch = event.changedTouches[0];
 
-    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+    this.sendDrawEvent( 'touch', touch.offsetX, touch.offsetY );
 
   };
 
@@ -180,8 +180,8 @@
 
     this.mouseDown = true;
 
-    var x = event.x,
-        y = event.y;
+    var x = event.offsetX,
+        y = event.offsetY;
 
     this.sendDrawEvent( 'mouse', x, y );
   };
@@ -200,8 +200,8 @@
     // if the mouse isn't down, it's not a drag event.
     if ( ! this.mouseDown ) { return; }
 
-    var x = event.x,
-        y = event.y;
+    var x = event.offsetX,
+        y = event.offsetY;
 
     this.sendDrawEvent( 'mouse', x, y );
   };
