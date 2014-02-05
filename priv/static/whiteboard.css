@@ -1,6 +1,6 @@
 body {
   margin: 0; padding: 0;
-  background-color: #ddd;
+  background-color: white;
   height: 100%;
 }
 
@@ -9,9 +9,14 @@ canvas#whiteboard {
   background-color: #fff;
 }
 
-#info {
-  float: left;
-  margin-left: 10px;
-  white-space: pre;
-}
+#controls {
+  position: absolute;
+  background-color: #ddd;
+  padding: 10px;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
 
+  -webkit-border-bottom-right-radius: 10px;
+  -moz-border-radius-bottomright: 10px;
+  border-bottom-right-radius: 10px;
+}

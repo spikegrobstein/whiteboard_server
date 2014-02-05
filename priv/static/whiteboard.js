@@ -161,6 +161,10 @@
     this.handle( 'mousedown',  this.handleMouseDown.bind(this)  );
     this.handle( 'mouseup',    this.handleMouseUp.bind(this)    );
     this.handle( 'mousemove',  this.handleMouseMove.bind(this)  );
+
+    this.handle( 'mousewheel', function(event) {
+      console.log(event);
+    })
   };
 
   Whiteboard.prototype.handleTouchStart = function( event ) {
@@ -264,6 +268,19 @@
     console.log({got_user_list: payload});
   });
 
+  var control_toggle_btn = document.getElementById('hideshow'),
+      tools_ele = document.getElementById('form');
+
+  control_toggle_btn.addEventListener( 'click', function() {
+    if ( this.innerHTML == 'X' ) {
+      this.innerHTML = '&gt;';
+      tools_ele.style.display = 'none';
+    } else {
+      this.innerHTML = 'X';
+      tools_ele.style.display = 'block';
+    }
+  });
+
   // TODO: rewrite all this shit here. leverage some messageBus goodness.
   document.getElementById('pen-width-input').addEventListener( 'input', function() {
     var value = this.value;
@@ -282,74 +299,5 @@
       global.whiteboard.penColor = value;
     }
   });
-
-
-  return;
-
-  // code:
-  var whiteboard_ele = document.getElementById("whiteboard"),
-      whiteboard = new Whiteboard( whiteboard_ele );
-
-
-  var whiteboard = document.getElementById("whiteboard"),
-      info = document.getElementById('info');
-
-  whiteboard.addEventListener( 'touchstart', handleStart, false );
-  whiteboard.addEventListener( 'touchend', handleEnd, false );
-  whiteboard.addEventListener( 'touchmove', handleMove, false );
-  whiteboard.addEventListener( 'touchleave', handleLeave, false )
-
-  log("initialized");
-
-  function handleStart( event ) {
-    event.preventDefault();
-
-    log("start");
-
-    var el = whiteboard,
-        ctx = el.getContext('2d'),
-        touches = event.changedTouches,
-        touch = touches[0];
-
-    log("Touches: " + touches.length);
-    log("Touch: " + touch.identifier);
-  }
-
-  function handleEnd( event ) {
-    event.preventDefault();
-
-    var el = whiteboard,
-        ctl = el.getContext('2d'),
-        touches = event.changedTouches,
-        touch = touches[0];
-
-    log("end: " + touch.identifier);
-  }
-
-  function handleMove( event ) {
-    event.preventDefault();
-
-    var touches = event.changedTouches;
-
-    log("move: " + touches.length);
-  }
-
-  function handleLeave( event ) {
-    log('left');
-  }
-
-  function log() {
-    var a;
-    for (a in arguments) {
-      info.innerHTML += arguments[a] + "\n";
-    }
-
-    // cleanup
-    var logOutput = info.innerHTML.split("\n");
-    if (logOutput.length > 20) {
-      logOutput = logOutput.slice(1, 20);
-      info.innerHTML = logOutput.join("\n") + "\n";
-    }
-  }
 
 })(window, document);

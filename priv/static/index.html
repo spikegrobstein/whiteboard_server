@@ -11,17 +11,20 @@
     no support
   </canvas>
 
-  <form>
-    <div>
-      <label>Color: #</label>
-      <input type="text" id="pen-color-input" name="penColor" value="FF0000" />
-    </div>
+  <div id="controls">
+    <button id="hideshow">&gt;</button>
+    <form id="form" style="display:none">
+      <div>
+        <label>Color: #</label>
+        <input type="text" id="pen-color-input" name="penColor" value="FF0000" />
+      </div>
 
-    <div>
-      <label>Width:</label>
-      <input type="text" id="pen-width-input" name="penWidth" value="4" />
-    </div>
-  </form>
+      <div>
+        <label>Width:</label>
+        <input type="text" id="pen-width-input" name="penWidth" value="4" />
+      </div>
+    </form>
+  </div>
 
   <script src="/static/whiteboard.js"></script>
 </body>
