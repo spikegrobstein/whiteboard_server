@@ -30,6 +30,21 @@
 
   </div>
 
-  <script src="/static/whiteboard.js"></script>
+  <script>
+    var imports = [
+          'message_bus',
+          'whiteboard_client',
+          'whiteboard',
+          'app'
+        ],
+        i = 0;
+
+    // import everything
+    for ( i in imports ) {
+      i = imports[i] + '.js';
+
+      document.write('<script src="/static/js/' + i + '"><\/script>');
+    }
+  </script>
 </body>
 </html>
