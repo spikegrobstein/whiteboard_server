@@ -280,8 +280,6 @@ window.requestAnimFrame = function(){
   Whiteboard.prototype.handleTouchEnd = function( event ) {
     event.preventDefault();
 
-    this.penDown = false;
-
     this.client.send( 'pen_up', {} );
   };
 
