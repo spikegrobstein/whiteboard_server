@@ -165,6 +165,7 @@ window.requestAnimFrame = function(){
     this.penColor = "FF0000";
 
     // local state of the pen
+    // (used for tracking the difference between mousedrag and mousemove)
     this.penDown = false;
 
     // store where each user's pen is (for connecting lines)
