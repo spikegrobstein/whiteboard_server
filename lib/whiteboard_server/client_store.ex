@@ -41,6 +41,7 @@ defmodule WhiteboardServer.ClientStore do
         send_user_list( pid, clients )
 
       "draw" ->
+        IO.inspect(payload)
         broadcast_draw( clients, pid, payload )
 
       "pen_up" ->
