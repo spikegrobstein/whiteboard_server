@@ -132,10 +132,12 @@
 
     this.client = new WhiteboardClient( host, this.messageBus );
 
-    this.mouseDown = false;
 
     this.penWidth = 4;
     this.penColor = "FF0000";
+
+    // local state of the
+    this.penDown = false;
 
     // store where each user's pen is (for connecting lines)
     this.penStatuses = {}; // hash keyed by userId
@@ -200,7 +202,7 @@
   Whiteboard.prototype.handleMouseDown = function( event ) {
     event.preventDefault();
 
-    this.mouseDown = true;
+    this.penDown = true;
 
     var x = event.clientX,
         y = event.clientY;
@@ -211,7 +213,7 @@
   Whiteboard.prototype.handleMouseUp = function( event ) {
     event.preventDefault();
 
-    this.mouseDown = false;
+    this.penDown = false;
     this.client.send( 'pen_up', {} );
 
   };
@@ -220,7 +222,7 @@
     event.preventDefault();
 
     // if the mouse isn't down, it's not a drag event.
-    if ( ! this.mouseDown ) { return; }
+    if ( ! this.penDown ) { return; }
 
     var x = event.clientX,
         y = event.clientY;
