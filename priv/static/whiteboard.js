@@ -1,3 +1,16 @@
+window.requestAnimFrame = function(){
+    return (
+            window.requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            window.oRequestAnimationFrame      ||
+            window.msRequestAnimationFrame     ||
+            function(/* function */ callback){
+                window.setTimeout(callback, 1000 / 60);
+            }
+        );
+}();
+
 (function (global, document) {
 
 
@@ -132,19 +145,49 @@
 
     this.client = new WhiteboardClient( host, this.messageBus );
 
+    // default sizing ( 4x larger than 1080 )
+    this.defaultWidth = 1080 * 4;
+    this.defaultHeight = 1920 * 4;
 
+    // initialize offscreen context
+    this.image = this.createImage( this.defaultWidth, this.defaultHeight );
+    this.imageCtx = this.image.getContext('2d');
+    this.whiteboardCtx = this.whiteboard.getContext('2d');
+
+    this.zoomRatio = 0.25; // 25% zoom
+
+    // the x/y of the view's upper-left corner compared to the main image
+    this.scrollX = 0;
+    this.scrollY = 0;
+
+    // initialize some of our state
     this.penWidth = 4;
     this.penColor = "FF0000";
 
-    // local state of the
+    // local state of the pen
     this.penDown = false;
 
     // store where each user's pen is (for connecting lines)
     this.penStatuses = {}; // hash keyed by userId
 
+    // some initialization functions
     this.resizeWhiteboard();
     this.initializeListeners();
   };
+
+  Whiteboard.prototype.createImage = function( width, height ) {
+    var buffer = document.createElement('canvas'),
+        ctx = buffer.getContext('2d');
+
+    buffer.width = width;
+    buffer.height = height;
+
+    // fill with white
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    return buffer;
+  }
 
   Whiteboard.prototype.resizeWhiteboard = function() {
     // resize the canvas a bit
@@ -231,21 +274,25 @@
   };
 
   Whiteboard.prototype.sendDrawEvent = function( pointer, x, y ) {
-    this.messageBus.broadcast( 'draw', {
-      pointer: pointer,
-      x: x,
-      y: y,
-      penWidth: this.penWidth,
-      penColor: this.penColor
-    } );
+    window.requestAnimFrame(function() {
+      this.messageBus.broadcast( 'draw', {
+        pointer: pointer,
+        x: x,
+        y: y,
+        penWidth: this.penWidth,
+        penColor: this.penColor
+      } );
+    }.bind(this));
   };
 
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
-    var ctx = this.whiteboard.getContext('2d'),
-        last = this.penStatuses[message.userId],
-        userId = message.userId.replace(/[^a-z0-9]/ig, ''),
-        userEle = document.getElementById(userId);
+    var ctx         = this.imageCtx,
+        last        = this.penStatuses[message.userId],
+        userId      = message.userId.replace(/[^a-z0-9]/ig, ''),
+        userEle     = document.getElementById(userId);
+        onscreenCtx = this.whiteboardCtx;
 
+    // set background on this user
     userEle.style.backgroundColor = "#" + message.penColor;
 
     ctx.fillStyle = "#" + message.penColor;
@@ -262,6 +309,22 @@
 
     ctx.arc(message.x, message.y, message.penWidth / 2, 0,2*Math.PI, false);
     ctx.fill();
+
+    // render offscreen image to onscreen canvas
+    window.requestAnimFrame(function() {
+      onscreenCtx.drawImage(
+        this.image,
+        this.scrollX,
+        this.scrollY,
+        this.whiteboard.width,
+        this.whiteboard.height,
+        0,
+        0,
+        this.whiteboard.width,
+        this.whiteboard.height
+      );
+    }.bind(this));
+
 
     this.penStatuses[message.userId] = { x: message.x, y: message.y };
   };
