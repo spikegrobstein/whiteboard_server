@@ -145,16 +145,16 @@ window.requestAnimFrame = function(){
 
     this.client = new WhiteboardClient( host, this.messageBus );
 
-    // default sizing ( 4x larger than 1080 )
-    this.defaultWidth = 1080 * 4;
-    this.defaultHeight = 1920 * 4;
+    // default sizing ( 2x larger than 1080 )
+    this.defaultWidth = 1080 * 2;
+    this.defaultHeight = 1920 * 2;
 
     // initialize offscreen context
     this.image = this.createImage( this.defaultWidth, this.defaultHeight );
     this.imageCtx = this.image.getContext('2d');
     this.whiteboardCtx = this.whiteboard.getContext('2d');
 
-    this.zoomRatio = 0.25; // 25% zoom
+    this.zoomRatio = 0.5; // 50% zoom
 
     // the x/y of the view's upper-left corner compared to the main image
     this.scrollX = 0;
@@ -216,8 +216,54 @@ window.requestAnimFrame = function(){
     this.handle( 'mousemove',  this.handleMouseMove.bind(this)  );
 
     this.handle( 'mousewheel', function(event) {
-      console.log(event);
-    })
+      event.preventDefault();
+
+      var dx = event.wheelDeltaX,
+          dy = event.wheelDeltaY,
+          inverted = event.webkitDirectionInvertedFromDevice;
+
+      this.scroll( dx, dy, inverted );
+    }.bind(this))
+  };
+
+  Whiteboard.prototype.scroll = function( dx, dy, is_inverted ) {
+    if (is_inverted) {
+      dx = -dx;
+      dy = -dy;
+    }
+
+    this.scrollX -= dx;
+    this.scrollY -= dy;
+
+    if (this.scrollX < 0) {
+      this.scrollX = 0;
+    } else if ( this.scrollX > this.image.width - this.whiteboard.width ) {
+      this.scrollX = this.image.width - this.whiteboard.width;
+    }
+
+    if (this.scrollY < 0) {
+      this.scrollY = 0;
+    } else if ( this.scrollY > this.image.height - this.whiteboard.height ) {
+      this.scrollY = this.image.height - this.whiteboard.height;
+    }
+
+    this.redraw();
+  };
+
+  Whiteboard.prototype.redraw = function() {
+    window.requestAnimFrame(function() {
+      this.whiteboardCtx.drawImage(
+        this.image,
+        this.scrollX,
+        this.scrollY,
+        this.whiteboard.width,
+        this.whiteboard.height,
+        0,
+        0,
+        this.whiteboard.width,
+        this.whiteboard.height
+      );
+    }.bind(this));
   };
 
   Whiteboard.prototype.handleTouchStart = function( event ) {
@@ -230,6 +276,8 @@ window.requestAnimFrame = function(){
 
   Whiteboard.prototype.handleTouchEnd = function( event ) {
     event.preventDefault();
+
+    this.penDown = false;
 
     this.client.send( 'pen_up', {} );
   };
@@ -277,8 +325,8 @@ window.requestAnimFrame = function(){
     window.requestAnimFrame(function() {
       this.messageBus.broadcast( 'draw', {
         pointer: pointer,
-        x: x,
-        y: y,
+        x: x + this.scrollX,
+        y: y + this.scrollY,
         penWidth: this.penWidth,
         penColor: this.penColor
       } );
@@ -311,19 +359,7 @@ window.requestAnimFrame = function(){
     ctx.fill();
 
     // render offscreen image to onscreen canvas
-    window.requestAnimFrame(function() {
-      onscreenCtx.drawImage(
-        this.image,
-        this.scrollX,
-        this.scrollY,
-        this.whiteboard.width,
-        this.whiteboard.height,
-        0,
-        0,
-        this.whiteboard.width,
-        this.whiteboard.height
-      );
-    }.bind(this));
+    this.redraw();
 
 
     this.penStatuses[message.userId] = { x: message.x, y: message.y };
