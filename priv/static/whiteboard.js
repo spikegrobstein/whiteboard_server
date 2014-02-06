@@ -269,58 +269,8 @@ window.requestAnimFrame = function(){
     }.bind(this));
   };
 
-  Whiteboard.prototype.handleTouchStart = function( event ) {
-    event.preventDefault();
-
-    var touch = event.changedTouches[0];
-
-    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
-  };
-
-  Whiteboard.prototype.handleTouchEnd = function( event ) {
-    event.preventDefault();
-
-    this.client.send( 'pen_up', {} );
-  };
-
-  Whiteboard.prototype.handleTouchMove = function( event ) {
-    event.preventDefault();
-
-    var touch = event.changedTouches[0];
-
-    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
-  };
-
-  Whiteboard.prototype.handleMouseDown = function( event ) {
-    event.preventDefault();
-
-    this.penDown = true;
-
-    var x = event.clientX,
-        y = event.clientY;
-
-    this.sendDrawEvent( 'mouse', x, y );
-  };
-
-  Whiteboard.prototype.handleMouseUp = function( event ) {
-    event.preventDefault();
-
-    this.penDown = false;
-    this.client.send( 'pen_up', {} );
-
-  };
-
-  Whiteboard.prototype.handleMouseMove = function( event ) {
-    event.preventDefault();
-
-    // if the mouse isn't down, it's not a drag event.
-    if ( ! this.penDown ) { return; }
-
-    var x = event.clientX,
-        y = event.clientY;
-
-    this.sendDrawEvent( 'mouse', x, y );
-  };
+  // functions for sending things to the server
+  // TODO: this should probably be part of the client itself.
 
   Whiteboard.prototype.sendDrawEvent = function( pointer, x, y ) {
     this.messageBus.broadcast( 'draw', {
@@ -331,6 +281,13 @@ window.requestAnimFrame = function(){
       penColor: this.penColor
     } );
   };
+
+  Whiteboard.prototype.sendPenUp = function() {
+    this.client.send( 'pen_up', {} );
+  };
+
+  // event receivers
+  // for how we handle incoming things
 
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
     var ctx         = this.imageCtx,
@@ -372,6 +329,63 @@ window.requestAnimFrame = function(){
 
     delete this.penStatuses[userId];
   };
+  // interaction event handers
+  // this is stuff like mouse-move, touch events and keyboard events
+  // before they get filtered through our internal API.
+
+  Whiteboard.prototype.handleTouchStart = function( event ) {
+    event.preventDefault();
+
+    var touch = event.changedTouches[0];
+
+    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+  };
+
+  Whiteboard.prototype.handleTouchEnd = function( event ) {
+    event.preventDefault();
+
+    this.sendPenUp();
+  };
+
+  Whiteboard.prototype.handleTouchMove = function( event ) {
+    event.preventDefault();
+
+    var touch = event.changedTouches[0];
+
+    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+  };
+
+  Whiteboard.prototype.handleMouseDown = function( event ) {
+    event.preventDefault();
+
+    this.penDown = true;
+
+    var x = event.clientX,
+        y = event.clientY;
+
+    this.sendDrawEvent( 'mouse', x, y );
+  };
+
+  Whiteboard.prototype.handleMouseUp = function( event ) {
+    event.preventDefault();
+
+    this.penDown = false;
+
+    this.sendPenUp();
+  };
+
+  Whiteboard.prototype.handleMouseMove = function( event ) {
+    event.preventDefault();
+
+    // if the mouse isn't down, it's not a drag event.
+    if ( ! this.penDown ) { return; }
+
+    var x = event.clientX,
+        y = event.clientY;
+
+    this.sendDrawEvent( 'mouse', x, y );
+  };
+
 
   global.MessageBus = MessageBus;
   global.WhiteboardClient = WhiteboardClient;
