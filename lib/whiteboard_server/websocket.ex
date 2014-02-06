@@ -33,7 +33,7 @@ defmodule WhiteboardServer.Websocket do
 
     # :gen_server.cast( :client_store, { :broadcast, data } )
 
-    { :reply, { :text, message }, req, state }
+    { :ok, req, state }
   end
 
   def websocket_terminate(_reason, _req, _state) do
