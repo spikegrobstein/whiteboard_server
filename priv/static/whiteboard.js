@@ -322,15 +322,13 @@ window.requestAnimFrame = function(){
   };
 
   Whiteboard.prototype.sendDrawEvent = function( pointer, x, y ) {
-    window.requestAnimFrame(function() {
-      this.messageBus.broadcast( 'draw', {
-        pointer: pointer,
-        x: x + this.scrollX,
-        y: y + this.scrollY,
-        penWidth: this.penWidth,
-        penColor: this.penColor
-      } );
-    }.bind(this));
+    this.messageBus.broadcast( 'draw', {
+      pointer: pointer,
+      x: x + this.scrollX,
+      y: y + this.scrollY,
+      penWidth: this.penWidth,
+      penColor: this.penColor
+    } );
   };
 
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
