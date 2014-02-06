@@ -146,8 +146,8 @@ window.requestAnimFrame = function(){
     this.client = new WhiteboardClient( host, this.messageBus );
 
     // default sizing ( 2x larger than 1080 )
-    this.defaultWidth = 1080 * 2;
-    this.defaultHeight = 1920 * 2;
+    this.defaultWidth = 1920 * 2;
+    this.defaultHeight = 1080 * 2;
 
     // initialize offscreen context
     this.image = this.createImage( this.defaultWidth, this.defaultHeight );
@@ -358,11 +358,10 @@ window.requestAnimFrame = function(){
     ctx.arc(message.x, message.y, message.penWidth / 2, 0,2*Math.PI, false);
     ctx.fill();
 
+    this.penStatuses[message.userId] = { x: message.x, y: message.y };
+
     // render offscreen image to onscreen canvas
     this.redraw();
-
-
-    this.penStatuses[message.userId] = { x: message.x, y: message.y };
   };
 
   Whiteboard.prototype.handlePenUp = function( messageType, message ) {
