@@ -228,6 +228,8 @@ window.requestAnimFrame = function(){
   };
 
   Whiteboard.prototype.scroll = function( dx, dy, is_inverted ) {
+    if ( typeof is_inverted === 'undefined' ) { is_inverted = false; }
+
     if (is_inverted) {
       dx = -dx;
       dy = -dy;
