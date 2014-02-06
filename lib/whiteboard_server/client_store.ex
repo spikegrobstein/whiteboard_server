@@ -38,17 +38,18 @@ defmodule WhiteboardServer.ClientStore do
 
     case event do
       "user_list" ->
-        IO.inspect clients
         send_user_list( pid, clients )
+
       "draw" ->
-        IO.puts "got draw event"
         broadcast_draw( clients, pid, payload )
+
       "pen_up" ->
         # received when a client stops drawing
         # this is broadcast to all clients that the user
         # stopped so they can clear local pen values for that user
         # payload is ignored
         broadcast_pen_up( clients, pid )
+
       _ ->
         IO.puts "got something else: #{ event }"
         send_unknown_packet_error( pid, event, payload )
@@ -104,8 +105,6 @@ defmodule WhiteboardServer.ClientStore do
   defp broadcast_draw( clients, source_pid, payload ) do
 
     draw_payload = HashDict.put( payload, :userId, inspect(source_pid) )
-
-    IO.inspect( draw_payload )
 
     Enum.each( clients, fn({pid, _nick}) ->
       send pid, make_packet( "draw", draw_payload )
