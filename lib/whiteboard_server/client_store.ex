@@ -13,10 +13,6 @@ defmodule WhiteboardServer.ClientStore do
     { :reply, clients, clients }
   end
 
-  def handle_call( :get_nick, from, clients ) do
-    { :reply, client_for_pid(clients, from), clients }
-  end
-
   def handle_cast( { :add_client, { pid, nick } }, clients ) do
     { :noreply, add_client( clients, { pid, nick } ) }
   end
@@ -32,15 +28,6 @@ defmodule WhiteboardServer.ClientStore do
   def handle_cast( { :handle_packet, pid, packet }, clients ) do
     handle_packet( clients, pid, packet )
     { :noreply, clients }
-  end
-
-  defp client_for_pid( clients, pid ) do
-    result = Enum.find( clients, fn(x) ->
-      { ^pid, nick } = x
-    end)
-
-    { pid, nick } = result
-    nick
   end
 
   @doc """
@@ -120,7 +107,7 @@ defmodule WhiteboardServer.ClientStore do
 
     IO.inspect( draw_payload )
 
-    Enum.each( clients, fn({pid, nick}) ->
+    Enum.each( clients, fn({pid, _nick}) ->
       send pid, make_packet( "draw", draw_payload )
     end )
   end
@@ -130,7 +117,7 @@ defmodule WhiteboardServer.ClientStore do
     this is sent to everyone
   """
   defp broadcast_pen_up( clients, source_pid ) do
-    Enum.each( clients, fn({pid, nick}) ->
+    Enum.each( clients, fn({pid, _nick}) ->
       send pid, make_packet( "pen_up", [ userId: inspect(source_pid) ] )
     end )
   end
