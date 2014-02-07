@@ -33,6 +33,14 @@ window.requestAnimFrame = function(){
 
     this.zoomRatio = 0.5; // 50% zoom
 
+    // for pinch-to-zoom
+    // this stores the size of the last box, formed by taking the 2 finger
+    // touchpoints and creating a rectangle and calculating its area
+    // lastZoomCenter stores the x/y (as an array) of the center of the zoom box.
+    // this allows the ability to scroll around, too
+    this.lastZoomBoxSize = null; // an integer
+    this.lastZoomCenter = null;  // to be populated with array of [ x, y ]
+
     // the x/y of the view's upper-left corner compared to the main image
     // this is actual X/Y, in pixels of the source image at actual size.
     this.scrollX = 0;
@@ -109,8 +117,9 @@ window.requestAnimFrame = function(){
    *  scroll deltas
    *  this uses real screen values and handles scaling based on zoomRatio
    */
-  Whiteboard.prototype.scroll = function( dx, dy, is_inverted ) {
+  Whiteboard.prototype.scroll = function( dx, dy, is_inverted, doRedraw ) {
     if ( typeof is_inverted === 'undefined' ) { is_inverted = false; }
+    if ( typeof doRedraw === 'undefined' ) { doRedraw = true; }
 
     if (is_inverted) {
       dx = -dx;
@@ -140,7 +149,9 @@ window.requestAnimFrame = function(){
       this.scrollY = maxYScroll;
     }
 
-    this.redraw();
+    if ( doRedraw ) {
+      this.redraw();
+    }
   };
 
   Whiteboard.prototype.redraw = function() {
@@ -167,6 +178,13 @@ window.requestAnimFrame = function(){
         this.whiteboard.height
       );
     }.bind(this));
+  };
+
+  Whiteboard.prototype.setZoom = function( newZoom ) {
+    this.zoomRatio = newZoom;
+
+    if ( this.zoomRatio < .25 ) { this.zoomRatio = .25; }
+    if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; }
   };
 
   // functions for sending things to the server
@@ -229,6 +247,40 @@ window.requestAnimFrame = function(){
 
     delete this.penStatuses[userId];
   };
+
+  Whiteboard.prototype.handlePinchToZoom = function( touches ) {
+
+    var touchA    = touches[0],
+        touchB    = touches[1],
+        boxWidth  = Math.abs( touchA.clientX - touchB.clientX ),
+        boxHeight = Math.abs( touchA.clientY - touchB.clientY ),
+        boxArea   = boxWidth * boxHeight,
+        boxCenter = [
+          Math.max( touchA.clientX, touchB.clientX ) - ( boxWidth / 2 ),
+          Math.max( touchA.clientY, touchB.clientY ) - ( boxHeight / 2 )
+        ];
+
+    // if we're already in zooming mode...
+    if ( this.lastZoomBoxSize ) {
+      var scaleRatio = boxArea / this.lastZoomBoxSize;
+
+      this.setZoom( this.zoomRatio * scaleRatio );
+      this.scroll( boxArea - this.lastZoomBoxSize / 2 * ( 1 / this.zoomRatio), boxArea - this.lastZoomBoxSize / 2 * ( 1 / this.zoomRatio), false, false );
+    }
+
+    if ( this.lastZoomCenter ) {
+      var dx = boxCenter[0] - this.lastZoomCenter[0],
+          dy = boxCenter[1] - this.lastZoomCenter[1];
+
+      this.scroll( dx, dy, true, false );
+    }
+
+    this.lastZoomBoxSize = boxArea;
+    this.lastZoomBoxCenter = boxCenter;
+
+    this.redraw();
+  };
+
   // interaction event handers
   // this is stuff like mouse-move, touch events and keyboard events
   // before they get filtered through our internal API.
@@ -238,11 +290,24 @@ window.requestAnimFrame = function(){
 
     var touch = event.changedTouches[0];
 
-    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+    if ( event.touches.length == 1 ) {
+      this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+    } else if ( event.touches.length == 2 ) {
+      this.client.send('console', 'doing pinch to zoom');
+      this.handlePinchToZoom( event.touches );
+    }
+
   };
 
   Whiteboard.prototype.handleTouchEnd = function( event ) {
     event.preventDefault();
+
+    if ( event.touches.length != 2 ) {
+      this.client.send('console', 'stopping pinch to zoom');
+
+      this.lastZoomBoxSize = null;
+      this.lastZoomCenter = null;
+    }
 
     this.sendPenUp();
   };
@@ -252,7 +317,12 @@ window.requestAnimFrame = function(){
 
     var touch = event.changedTouches[0];
 
-    this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+    if ( event.touches.length == 1 ) {
+      this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
+    } else if ( event.touches.length == 2 ) {
+      this.client.send('console', 'doing pinch to zoom');
+      this.handlePinchToZoom( event.touches );
+    }
   };
 
   Whiteboard.prototype.handleMouseDown = function( event ) {
