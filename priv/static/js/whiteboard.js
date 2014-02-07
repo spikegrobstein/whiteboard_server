@@ -183,8 +183,12 @@ window.requestAnimFrame = function(){
   Whiteboard.prototype.setZoom = function( newZoom ) {
     this.zoomRatio = newZoom;
 
-    if ( this.zoomRatio < .25 ) { this.zoomRatio = .25; }
+    this.client.send('console', "newZoom: " + newZoom);
+
+    if ( this.zoomRatio < .1 ) { this.zoomRatio = .1; }
     if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; }
+
+    return this.zoomRatio;
   };
 
   // functions for sending things to the server
@@ -255,6 +259,8 @@ window.requestAnimFrame = function(){
         boxWidth  = Math.abs( touchA.clientX - touchB.clientX ),
         boxHeight = Math.abs( touchA.clientY - touchB.clientY ),
         boxArea   = boxWidth * boxHeight,
+
+        // the center of the box, in screen coordinates
         boxCenter = [
           Math.max( touchA.clientX, touchB.clientX ) - ( boxWidth / 2 ),
           Math.max( touchA.clientY, touchB.clientY ) - ( boxHeight / 2 )
@@ -262,16 +268,23 @@ window.requestAnimFrame = function(){
 
     // if we're already in zooming mode...
     if ( this.lastZoomBoxSize ) {
-      var scaleRatio = boxArea / this.lastZoomBoxSize;
+      var scaleRatio = boxArea / this.lastZoomBoxSize,
+          oldZoom = this.zoomRatio,
+          newZoom = this.setZoom( this.zoomRatio * scaleRatio ),
+          dx = boxCenter[0] * ( 1 / oldZoom ) - boxCenter[0] * ( 1 / newZoom ),
+          dy = boxCenter[1] * ( 1 / oldZoom ) - boxCenter[1] * ( 1 / newZoom );
 
-      this.setZoom( this.zoomRatio * scaleRatio );
-      this.scroll( boxArea - this.lastZoomBoxSize / 2 * ( 1 / this.zoomRatio), boxArea - this.lastZoomBoxSize / 2 * ( 1 / this.zoomRatio), false, false );
+
+      // this.scroll( dx, dy, true, false );
+
+      // this.scroll( boxArea - this.lastZoomBoxSize / 2 * ( 1 / this.zoomRatio), boxArea - this.lastZoomBoxSize / 2 * ( 1 / this.zoomRatio), false, false );
     }
 
-    if ( this.lastZoomCenter ) {
-      var dx = boxCenter[0] - this.lastZoomCenter[0],
-          dy = boxCenter[1] - this.lastZoomCenter[1];
+    if ( this.lastZoomBoxCenter ) {
+      var dx = boxCenter[0] - this.lastZoomBoxCenter[0],
+          dy = boxCenter[1] - this.lastZoomBoxCenter[1];
 
+      this.client.send('console', {dx: dx, dy: dy, center: boxCenter});
       this.scroll( dx, dy, true, false );
     }
 
