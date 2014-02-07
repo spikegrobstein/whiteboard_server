@@ -49,7 +49,11 @@ defmodule WhiteboardServer.ClientStore do
         # this is broadcast to all clients that the user
         # stopped so they can clear local pen values for that user
         # payload is ignored
+        IO.puts "pen_up"
         broadcast_pen_up( clients, pid )
+
+      "console" ->
+        IO.inspect(payload)
 
       _ ->
         IO.puts "got something else: #{ event }"
