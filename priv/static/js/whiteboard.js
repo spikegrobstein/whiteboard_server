@@ -34,6 +34,7 @@ window.requestAnimFrame = function(){
     this.zoomRatio = 0.5; // 50% zoom
 
     // the x/y of the view's upper-left corner compared to the main image
+    // this is actual X/Y, in pixels of the source image at actual size.
     this.scrollX = 0;
     this.scrollY = 0;
 
@@ -104,6 +105,10 @@ window.requestAnimFrame = function(){
     }.bind(this))
   };
 
+  /*
+   *  scroll deltas
+   *  this uses real screen values and handles scaling based on zoomRatio
+   */
   Whiteboard.prototype.scroll = function( dx, dy, is_inverted ) {
     if ( typeof is_inverted === 'undefined' ) { is_inverted = false; }
 
@@ -112,19 +117,27 @@ window.requestAnimFrame = function(){
       dy = -dy;
     }
 
+    // translate based on zoomRatio
+    dx /= this.zoomRatio;
+    dy /= this.zoomRatio;
+
     this.scrollX -= dx;
     this.scrollY -= dy;
 
+    // the max boundries of the scroll, with zoom taken into account
+    var maxXScroll = this.image.width - this.whiteboard.width * ( 1 / this.zoomRatio ),
+        maxYScroll = this.image.height - this.whiteboard.height * ( 1 / this.zoomRatio );
+
     if (this.scrollX < 0) {
       this.scrollX = 0;
-    } else if ( this.scrollX > this.image.width - this.whiteboard.width ) {
-      this.scrollX = this.image.width - this.whiteboard.width;
+    } else if ( this.scrollX > maxXScroll ) {
+      this.scrollX = maxXScroll;
     }
 
     if (this.scrollY < 0) {
       this.scrollY = 0;
-    } else if ( this.scrollY > this.image.height - this.whiteboard.height ) {
-      this.scrollY = this.image.height - this.whiteboard.height;
+    } else if ( this.scrollY > maxYScroll ) {
+      this.scrollY = maxYScroll;
     }
 
     this.redraw();
@@ -132,12 +145,22 @@ window.requestAnimFrame = function(){
 
   Whiteboard.prototype.redraw = function() {
     window.requestAnimFrame(function() {
+
+      // the width/height of the visible section of the source image
+      // based on the whiteboard's dimensions (with zoom taken into account)
+      var sourceWidth = this.whiteboard.width * ( 1 / this.zoomRatio ),
+          sourceHeight = this.whiteboard.height * ( 1 / this.zoomRatio );
+
       this.whiteboardCtx.drawImage(
         this.image,
+
+        // where on the source image to draw from
         this.scrollX,
         this.scrollY,
-        this.whiteboard.width,
-        this.whiteboard.height,
+        sourceWidth,
+        sourceHeight,
+
+        // where on the local canvas to draw to
         0,
         0,
         this.whiteboard.width,
@@ -152,8 +175,8 @@ window.requestAnimFrame = function(){
   Whiteboard.prototype.sendDrawEvent = function( pointer, x, y ) {
     this.messageBus.broadcast( 'draw', {
       pointer: pointer,
-      x: x + this.scrollX,
-      y: y + this.scrollY,
+      x: this.scrollX + x * ( 1 / this.zoomRatio ),
+      y: this.scrollY + y * ( 1 / this.zoomRatio ),
       penWidth: this.penWidth,
       penColor: this.penColor
     } );
