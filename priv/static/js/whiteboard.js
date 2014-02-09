@@ -243,8 +243,6 @@ window.requestAnimFrame = function(){
   Whiteboard.prototype.setZoom = function( newZoom ) {
     this.zoomRatio = newZoom;
 
-    // this.client.send('console', "newZoom: " + newZoom);
-
     // restrict to minimum and maximum zoom levels.
     if ( isNaN(this.zoomRatio) ) { this.zoomRatio = 1; }
     if ( this.zoomRatio < .1 ) { this.zoomRatio = .1; }
@@ -358,14 +356,12 @@ window.requestAnimFrame = function(){
     if ( event.touches.length == 1 ) {
       this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
     } else if ( event.touches.length == 2 ) {
-      this.client.send('console', 'doing pinch to zoom');
 
       this.zoomTouches = [
         this.translateFromLocalToFullsize( event.touches[0].clientX, event.touches[0].clientY ),
         this.translateFromLocalToFullsize( event.touches[1].clientX, event.touches[1].clientY )
       ];
 
-      // this.handlePinchToZoom( event.touches );
     }
 
   };
@@ -374,8 +370,6 @@ window.requestAnimFrame = function(){
     event.preventDefault();
 
     if ( event.touches.length != 2 ) {
-      this.client.send('console', 'stopping pinch to zoom');
-
       this.zoomTouches = null;
       this.lastZoomBoxSize = null;
       this.lastZoomCenter = null;
@@ -392,7 +386,6 @@ window.requestAnimFrame = function(){
     if ( event.touches.length == 1 ) {
       this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
     } else if ( event.touches.length == 2 ) {
-      this.client.send('console', 'doing pinch to zoom');
       this.handlePinchToZoom( event.touches );
     }
   };
