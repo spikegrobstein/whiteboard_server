@@ -321,25 +321,25 @@ window.requestAnimFrame = function(){
 
     // calculate zoomRatio by using the box formed by t1 and t2
     // the ratio is the local size / fullsize size
-    var vt1        = { x: touches[0].clientX, y: touches[0].clientY }, // t1, view scale
-        vt2        = { x: touches[1].clientX, y: touches[1].clientY }, // t2, view scale
-        ft1        = this.translateFromLocalToFullsize( vt1.x, vt1.y ), // t1 full scale
-        ft2        = this.translateFromLocalToFullsize( vt2.x, vt2.y ), // t2 full scale
-        oft1       = this.zoomTouches[0], // original t1, full scale
-        oft2       = this.zoomTouches[1], // original t2, full scale
-        vboxWidth  = Math.abs( vt1.x - vt2.x ),
-        vboxHeight = Math.abs( vt1.y - vt2.y ),
-        fboxWidth  = Math.abs( oft1.x - oft2.x ),
-        fboxHeight = Math.abs( oft1.y - oft2.y ),
-        vboxDiag   = Math.sqrt( Math.pow( vboxWidth, 2 ) + Math.pow( vboxHeight, 2 ) ),
-        fboxDiag   = Math.sqrt( Math.pow( fboxWidth, 2 ) + Math.pow( fboxHeight, 2 ) ),
-        zoomRatio  = this.setZoom( vboxDiag / fboxDiag ),
+    var vt1        = { x: touches[0].clientX, y: touches[0].clientY },                  // t1, view scale
+        vt2        = { x: touches[1].clientX, y: touches[1].clientY },                  // t2, view scale
+        ft1        = this.translateFromLocalToFullsize( vt1.x, vt1.y ),                 // t1 full scale
+        ft2        = this.translateFromLocalToFullsize( vt2.x, vt2.y ),                 // t2 full scale
+        oft1       = this.zoomTouches[0],                                               // original t1, full scale
+        oft2       = this.zoomTouches[1],                                               // original t2, full scale
+        vboxWidth  = Math.abs( vt1.x - vt2.x ),                                         // width of the box at screen size
+        vboxHeight = Math.abs( vt1.y - vt2.y ),                                         // height of box at screen size
+        fboxWidth  = Math.abs( oft1.x - oft2.x ),                                       // width of original box at fullsize
+        fboxHeight = Math.abs( oft1.y - oft2.y ),                                       // height of original box at full size
+        vboxDiag   = Math.sqrt( Math.pow( vboxWidth, 2 ) + Math.pow( vboxHeight, 2 ) ), // distance between screen-size points
+        fboxDiag   = Math.sqrt( Math.pow( fboxWidth, 2 ) + Math.pow( fboxHeight, 2 ) ), // distance between original fullsize points
+        zoomRatio  = this.setZoom( vboxDiag / fboxDiag ),                               // ratio of screen size to full size (calculate zoom)
 
         // scroll values:
         // we have original x/y on fullsize
         // lock touchpoint 1's X from original location to that point on the screen
-        dx    = oft1.x - ft1.x,
-        dy    = oft1.y - ft1.y;
+        dx         = oft1.x - ft1.x,
+        dy         = oft1.y - ft1.y;
 
     this.scroll( dx, dy, true );
   };
