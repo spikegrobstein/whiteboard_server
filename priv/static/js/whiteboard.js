@@ -109,7 +109,9 @@ window.requestAnimFrame = function(){
           scrollDy = this.translateZoomFromLocalToFullsize( dy );
 
       this.scroll( scrollDx, scrollDy, inverted );
-    }.bind(this))
+    }.bind(this));
+
+    window.addEventListener( 'keydown', this.handleKeyDown.bind(this) );
   };
 
   Whiteboard.prototype.translateZoomFromLocalToFullsize = function( d ) {
@@ -236,9 +238,9 @@ window.requestAnimFrame = function(){
     this.zoomRatio = newZoom;
 
     // restrict to minimum and maximum zoom levels.
-    if ( isNaN(this.zoomRatio) ) { this.zoomRatio = 1; }
-    if ( this.zoomRatio < .1 ) { this.zoomRatio = .1; }
-    if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; }
+    if ( isNaN(this.zoomRatio) ) { this.zoomRatio = 1; } // fail-safe; if zoom is bad, set it to 1.0
+    if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; } // max zoom is 2
+    if ( this.zoomRatio < .1 ) { this.zoomRatio = .1; } // min zoom is .1
 
     return this.zoomRatio;
   };
@@ -408,6 +410,22 @@ window.requestAnimFrame = function(){
         y = event.clientY;
 
     this.sendDrawEvent( 'mouse', x, y );
+  };
+
+  Whiteboard.prototype.handleKeyDown = function( event ) {
+
+    // 221 (]) > zoom in
+    // 219 ([) > zoom out
+
+    if ( event.keyCode == 221 ) { // zoom in
+      event.preventDefault();
+      this.setZoom( this.zoomRatio + 0.1 );
+      this.redraw();
+    } else if ( event.keyCode == 219 ) { // zoom out
+      event.preventDefault();
+      this.setZoom( this.zoomRatio - 0.1 );
+      this.redraw();
+    }
   };
 
   window.Whiteboard = Whiteboard;
