@@ -40,7 +40,7 @@ window.requestAnimFrame = function(){
     this.lastZoomCenter = null;  // to be populated with array of [ x, y ]
 
     // properties of the local client
-    this.zoomRatio = 1;
+    this.zoomRatio = .75;
 
     // the x/y of the view's upper-left corner compared to the main image
     // this is actual X/Y, in pixels of the source image at actual size.
@@ -49,7 +49,7 @@ window.requestAnimFrame = function(){
 
     // initialize some of our state
     this.penWidth = 4;
-    this.penColor = "FF0000";
+    this.penColor = "0000FF";
 
     // local state of the pen
     // (used for tracking the difference between mousedrag and mousemove)
@@ -172,18 +172,23 @@ window.requestAnimFrame = function(){
       dy = -dy;
     }
 
-    // translate based on zoomRatio
-    // dx /= this.zoomRatio;
-    // dy /= this.zoomRatio;
-
     this.scrollX -= dx;
     this.scrollY -= dy;
 
-    // the max boundries of the scroll, with zoom taken into account
+    this.scrollTo( undefined, undefined, doRedraw );
+  };
+
+  Whiteboard.prototype.scrollTo = function( x, y, doRedraw ) {
+    if ( typeof x === 'undefined' ) { x = this.scrollX; }
+    if ( typeof y === 'undefined' ) { y = this.scrollY; }
+    if ( typeof doRedraw === 'undefined' ) { doRedraw = true; }
 
     var whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height ),
         maxXScroll = this.image.width - whiteboardDimensions.width,
         maxYScroll = this.image.height - whiteboardDimensions.height;
+
+    this.scrollX = x;
+    this.scrollY = y;
 
     if (this.scrollX < 0) {
       this.scrollX = 0;
@@ -203,6 +208,9 @@ window.requestAnimFrame = function(){
   };
 
   Whiteboard.prototype.redraw = function() {
+    if ( this.currentlyDrawing ) { return; }
+
+    this.currentlyDrawing = true;
     window.requestAnimFrame(function() {
 
       // the width/height of the visible section of the source image
@@ -226,15 +234,18 @@ window.requestAnimFrame = function(){
         this.whiteboard.width,
         this.whiteboard.height
       );
+
+      this.currentlyDrawing = false;
     }.bind(this));
   };
 
   Whiteboard.prototype.setZoom = function( newZoom ) {
     this.zoomRatio = newZoom;
 
-    this.client.send('console', "newZoom: " + newZoom);
+    // this.client.send('console', "newZoom: " + newZoom);
 
     // restrict to minimum and maximum zoom levels.
+    if ( isNaN(this.zoomRatio) ) { this.zoomRatio = 1; }
     if ( this.zoomRatio < .1 ) { this.zoomRatio = .1; }
     if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; }
 
@@ -309,51 +320,29 @@ window.requestAnimFrame = function(){
 
   Whiteboard.prototype.handlePinchToZoom = function( touches ) {
 
-    // below coordinates should be using the coordinate system of the fullsize image
-    var touchA    = this.translateFromLocalToFullsize( touches[0].clientX, touches[0].clientY ),  //{ x: touches[0].clientX, y: touches[0].clientY },
-        touchB    = this.translateFromLocalToFullsize( touches[1].clientX, touches[1].clientY ),  //{ x: touches[1].clientX, y: touches[1].clientY },
-        boxWidth  = Math.abs( touchA.x - touchB.x ),
-        boxHeight = Math.abs( touchA.y - touchB.y ),
-        boxArea   = boxWidth * boxHeight,
+    // calculate zoomRatio by using the box formed by t1 and t2
+    // the ratio is the local size / fullsize size
+    var vt1        = { x: touches[0].clientX, y: touches[0].clientY }, // t1, view scale
+        vt2        = { x: touches[1].clientX, y: touches[1].clientY }, // t2, view scale
+        ft1        = this.translateFromLocalToFullsize( vt1.x, vt1.y ), // t1 full scale
+        ft2        = this.translateFromLocalToFullsize( vt2.x, vt2.y ), // t2 full scale
+        oft1       = this.zoomTouches[0], // original t1, full scale
+        oft2       = this.zoomTouches[1], // original t2, full scale
+        vboxWidth  = Math.abs( vt1.x - vt2.x ),
+        vboxHeight = Math.abs( vt1.y - vt2.y ),
+        fboxWidth  = Math.abs( oft1.x - oft2.x ),
+        fboxHeight = Math.abs( oft1.y - oft2.y ),
+        vboxDiag   = Math.sqrt( Math.pow( vboxWidth, 2 ) + Math.pow( vboxHeight, 2 ) ),
+        fboxDiag   = Math.sqrt( Math.pow( fboxWidth, 2 ) + Math.pow( fboxHeight, 2 ) ),
+        zoomRatio  = this.setZoom( vboxDiag / fboxDiag ),
 
-        // the center of the box, in coordinates of fullsize
-        boxCenter = [
-          Math.max( touchA.x, touchB.x ) - ( boxWidth / 2 ),
-          Math.max( touchA.y, touchB.y ) - ( boxHeight / 2 )
-        ];
+        // scroll values:
+        // we have original x/y on fullsize
+        // lock touchpoint 1's X from original location to that point on the screen
+        dx    = oft1.x - ft1.x,
+        dy    = oft1.y - ft1.y;
 
-    // if we're already in zooming mode...
-    if ( this.lastZoomBoxSize ) {
-      var scaleRatio = boxArea / this.lastZoomBoxSize,
-          oldZoom = this.zoomRatio,
-          newZoom = this.setZoom( this.zoomRatio * scaleRatio ),
-          dx = boxCenter[0] - boxCenter[0],
-          dy = boxCenter[1] - boxCenter[1];
-
-
-      // old box: x1, y1 -- position of old box
-      //          w1, h1 -- dimensions of old box
-      //          ox1, oy1 -- origin of old box resize event (lastZoomBoxCenter)
-      // above uses coordinate system of fullsize image
-
-
-      // this.scroll( dx, dy, true, false );
-
-      // this.scroll( boxArea - this.lastZoomBoxSize / 2 * ( 1 / this.zoomRatio), boxArea - this.lastZoomBoxSize / 2 * ( 1 / this.zoomRatio), false, false );
-    }
-
-    if ( this.lastZoomBoxCenter ) {
-      var dx = boxCenter[0] - this.lastZoomBoxCenter[0],
-          dy = boxCenter[1] - this.lastZoomBoxCenter[1];
-
-      this.client.send('console', {dx: dx, dy: dy, center: boxCenter});
-      // this.scroll( dx, dy, true, false );
-    }
-
-    this.lastZoomBoxSize = boxArea;
-    this.lastZoomBoxCenter = boxCenter;
-
-    this.redraw();
+    this.scroll( dx, dy, true );
   };
 
   // interaction event handers
@@ -369,7 +358,13 @@ window.requestAnimFrame = function(){
       this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
     } else if ( event.touches.length == 2 ) {
       this.client.send('console', 'doing pinch to zoom');
-      this.handlePinchToZoom( event.touches );
+
+      this.zoomTouches = [
+        this.translateFromLocalToFullsize( event.touches[0].clientX, event.touches[0].clientY ),
+        this.translateFromLocalToFullsize( event.touches[1].clientX, event.touches[1].clientY )
+      ];
+
+      // this.handlePinchToZoom( event.touches );
     }
 
   };
@@ -380,6 +375,7 @@ window.requestAnimFrame = function(){
     if ( event.touches.length != 2 ) {
       this.client.send('console', 'stopping pinch to zoom');
 
+      this.zoomTouches = null;
       this.lastZoomBoxSize = null;
       this.lastZoomCenter = null;
     }
