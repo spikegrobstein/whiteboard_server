@@ -31,14 +31,6 @@ window.requestAnimFrame = function(){
     this.imageCtx = this.image.getContext('2d');
     this.whiteboardCtx = this.whiteboard.getContext('2d');
 
-    // for pinch-to-zoom
-    // this stores the size of the last box, formed by taking the 2 finger
-    // touchpoints and creating a rectangle and calculating its area
-    // lastZoomCenter stores the x/y (as an array) of the center of the zoom box.
-    // this allows the ability to scroll around, too
-    this.lastZoomBoxSize = null; // an integer
-    this.lastZoomCenter = null;  // to be populated with array of [ x, y ]
-
     // properties of the local client
     this.zoomRatio = 1;
 
@@ -351,17 +343,12 @@ window.requestAnimFrame = function(){
   Whiteboard.prototype.handleTouchStart = function( event ) {
     event.preventDefault();
 
-    var touch = event.changedTouches[0];
-
-    if ( event.touches.length == 1 ) {
-      this.sendDrawEvent( 'touch', touch.clientX, touch.clientY );
-    } else if ( event.touches.length == 2 ) {
-
+    if ( event.touches.length == 2 ) {
+      // if there are 2 fingers down, let's save the 2 points that we're at.
       this.zoomTouches = [
         this.translateFromLocalToFullsize( event.touches[0].clientX, event.touches[0].clientY ),
         this.translateFromLocalToFullsize( event.touches[1].clientX, event.touches[1].clientY )
       ];
-
     }
 
   };
@@ -369,13 +356,15 @@ window.requestAnimFrame = function(){
   Whiteboard.prototype.handleTouchEnd = function( event ) {
     event.preventDefault();
 
-    if ( event.touches.length != 2 ) {
+    if ( event.touches.length < 2 ) {
+      // there aren't 2 fingers down, clear the cached zoom stuff
       this.zoomTouches = null;
-      this.lastZoomBoxSize = null;
-      this.lastZoomCenter = null;
     }
 
-    this.sendPenUp();
+    if ( event.touches.length == 0 ) {
+      this.sendPenUp();
+    }
+
   };
 
   Whiteboard.prototype.handleTouchMove = function( event ) {
