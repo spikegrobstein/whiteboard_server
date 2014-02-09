@@ -40,12 +40,13 @@ window.requestAnimFrame = function(){
     this.lastZoomCenter = null;  // to be populated with array of [ x, y ]
 
     // properties of the local client
-    this.zoomRatio = .75;
+    this.zoomRatio = 1;
 
     // the x/y of the view's upper-left corner compared to the main image
     // this is actual X/Y, in pixels of the source image at actual size.
-    this.scrollX = 0;
-    this.scrollY = 0;
+    // by default , we want to be centered.
+    this.scrollX = ( this.width / 2 ) - ( this.translateZoomFromLocalToFullsize(this.whiteboard.width) / 2 );
+    this.scrollY = ( this.height / 2 ) - ( this.translateZoomFromLocalToFullsize(this.whiteboard.height) / 2 );
 
     // initialize some of our state
     this.penWidth = 4;
