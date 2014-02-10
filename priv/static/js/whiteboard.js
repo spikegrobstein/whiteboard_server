@@ -240,7 +240,7 @@ window.requestAnimFrame = function(){
     // restrict to minimum and maximum zoom levels.
     if ( isNaN(this.zoomRatio) ) { this.zoomRatio = 1; } // fail-safe; if zoom is bad, set it to 1.0
     if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; } // max zoom is 2
-    if ( this.zoomRatio < .1 ) { this.zoomRatio = .1; } // min zoom is .1
+    if ( this.zoomRatio < .25 ) { this.zoomRatio = .25; } // min zoom is .1
 
     return this.zoomRatio;
   };
