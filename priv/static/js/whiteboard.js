@@ -414,14 +414,15 @@ window.requestAnimFrame = function(){
 
   Whiteboard.prototype.handleKeyDown = function( event ) {
 
-    // 221 (]) > zoom in
-    // 219 ([) > zoom out
+    var zoomInCode = 221,  // ]
+        zoomOutCode = 219, // [
+        panCode = 32;      // space
 
-    if ( event.keyCode == 221 ) { // zoom in
+    if ( event.keyCode === zoomInCode ) { // zoom in
       event.preventDefault();
       this.setZoom( this.zoomRatio + 0.1 );
       this.redraw();
-    } else if ( event.keyCode == 219 ) { // zoom out
+    } else if ( event.keyCode == zoomOutCode ) { // zoom out
       event.preventDefault();
       this.setZoom( this.zoomRatio - 0.1 );
       this.redraw();
