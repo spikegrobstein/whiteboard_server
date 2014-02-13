@@ -4,54 +4,71 @@
                         .subscribe( 'draw', this.receiveDraw.bind(this) );
                         // .subscribe( 'update', this, this.receiveUpdate.bind(this) );
 
+    this.connectionCount = 0;
+    this.connectionDelay = 0;
+
+    this.host = host;
     this.connect( host );
   };
 
-  WhiteboardClient.prototype.connect = function( host ) {
-    var messageBus = this.messageBus;
+  WhiteboardClient.prototype.connect = function() {
+    var ws = new WebSocket( this.host );
 
-    this.ws = new WebSocket( host );
+    ws.onopen    = this.handleWebsocketConnected.bind(this);
+    ws.onclose   = this.handleWebsocketClose.bind(this);
+    ws.onmessage = this.handleWebsocketMessage.bind(this);
 
-    // handle the connection to the server
-    // request the user list
-    this.ws.onopen = function() {
-      console.log('connected websocket!')
-      this.requestUserList();
-    }.bind(this);
+    this.ws = ws;
+  };
 
-    this.ws.onclose = function() { console.log('lost connection to websocket!') };
+  WhiteboardClient.prototype.handleWebsocketConnected = function() {
+    console.log('connected websocket!');
+    this.connectionCount += 1;
+    this.connectionDelay = 0;
+    this.requestUserList();
+  };
 
-    // handle receiving a message.
-    this.ws.onmessage = function(msg) {
-      var data = JSON.parse(msg.data),
-          event = data.event,
-          payload = data.payload;
+  WhiteboardClient.prototype.handleWebsocketClose = function() {
 
-      switch (event) {
-      case "user_list":
-        this.messageBus.broadcast('receive_user_list', payload);
-        break;
+    this.connectionDelay += 1;
 
-      case "draw":
-        this.messageBus.broadcast('receive_draw', payload);
-        break;
+    if ( this.connectionDelay > 3 ) {
+      this.connectionDelay = 3;
+    }
 
-      case "pen_up":
-        this.messageBus.broadcast('receive_pen_up', payload);
-        break;
+    console.log('Lost connection, reconnecting... (' + this.connectionDelay + ')');
+    setTimeout( this.connect.bind(this), this.connectionDelay * 1000 );
+  };
 
-      case "user_join":
-        this.messageBus.broadcast('receive_user_join', payload);
-        break;
+  WhiteboardClient.prototype.handleWebsocketMessage = function( msg ) {
+    var data = JSON.parse(msg.data),
+        event = data.event,
+        payload = data.payload;
 
-      case "user_part":
-        this.messageBus.broadcast('receive_user_part', payload);
-        break;
+    switch (event) {
+    case "user_list":
+      this.messageBus.broadcast('receive_user_list', payload);
+      break;
 
-      default:
-        console.log("got unknown packet type: " + event);
-      }
-    }.bind(this);
+    case "draw":
+      this.messageBus.broadcast('receive_draw', payload);
+      break;
+
+    case "pen_up":
+      this.messageBus.broadcast('receive_pen_up', payload);
+      break;
+
+    case "user_join":
+      this.messageBus.broadcast('receive_user_join', payload);
+      break;
+
+    case "user_part":
+      this.messageBus.broadcast('receive_user_part', payload);
+      break;
+
+    default:
+      console.log("got unknown packet type: " + event);
+    }
   };
 
   WhiteboardClient.prototype.requestUserList = function() {
