@@ -1,7 +1,7 @@
 window.requestAnimFrame = function(){
     return (
-            window.requestAnimationFrame       ||
             window.webkitRequestAnimationFrame ||
+            window.requestAnimationFrame       ||
             window.mozRequestAnimationFrame    ||
             window.oRequestAnimationFrame      ||
             window.msRequestAnimationFrame     ||
@@ -16,7 +16,8 @@ window.requestAnimFrame = function(){
     this.whiteboard = element;
     this.messageBus = new MessageBus()
                             .subscribe( 'receive_draw',   this.handleUpdate.bind(this) )
-                            .subscribe( 'receive_pen_up', this.handlePenUp.bind(this) );
+                            .subscribe( 'receive_pen_up', this.handlePenUp.bind(this) )
+                            .subscribe( 'keyboard_zoom', this.handleKeyboardZoom.bind(this) );
                             // .subscribe( 'set_penColor',   this.handleSetPenColor.bind(this) )
                             // .subscribe( 'set_penWidth',   this.handleSetPenWidth.bind(this) );
 
@@ -185,6 +186,9 @@ window.requestAnimFrame = function(){
     this.scrollX = x;
     this.scrollY = y;
 
+    this.scrollX = Math.ceil( this.scrollX );
+    this.scrollY = Math.ceil( this.scrollY );
+
     if (this.scrollX < 0) {
       this.scrollX = 0;
     } else if ( this.scrollX > maxXScroll ) {
@@ -266,6 +270,40 @@ window.requestAnimFrame = function(){
 
   // event receivers
   // for how we handle incoming things
+
+  Whiteboard.prototype.handleKeyboardZoom = function( _messageType, zoomDirection ) {
+    var zoomAmount = 0,
+        centerViewX = this.whiteboard.width / 2,
+        centerViewY = this.whiteboard.height / 2,
+        preCenterFull  = this.translateFromLocalToFullsize( centerViewX, centerViewY ), // fullsize coordinates before zoom
+        postCenterFull = null, // fullsize coordinates after zoom
+        dx = null, // scroll amount to re-center
+        dy = null; // scroll amount to re-center
+
+
+    switch( zoomDirection ) {
+      case 'in':
+        zoomAmount = 0.1;
+        break;
+
+      case 'out':
+        zoomAmount = -0.1;
+        break;
+
+      default:
+        console.log('unknown zoom direction: ' + zoomDirection);
+        // do nothing
+    }
+
+    this.setZoom( this.zoomRatio + zoomAmount );
+
+    postCenterFull = this.translateFromLocalToFullsize( centerViewX, centerViewY );
+    dx = preCenterFull.x - postCenterFull.x;
+    dy = preCenterFull.y - postCenterFull.y;
+
+    this.scroll( dx, dy, true );
+    this.redraw();
+  };
 
   // receive pen event from server
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
@@ -420,12 +458,10 @@ window.requestAnimFrame = function(){
 
     if ( event.keyCode === zoomInCode ) { // zoom in
       event.preventDefault();
-      this.setZoom( this.zoomRatio + 0.1 );
-      this.redraw();
+      this.messageBus.broadcast( 'keyboard_zoom', 'in' );
     } else if ( event.keyCode == zoomOutCode ) { // zoom out
       event.preventDefault();
-      this.setZoom( this.zoomRatio - 0.1 );
-      this.redraw();
+      this.messageBus.broadcast( 'keyboard_zoom', 'out' );
     }
   };
 
