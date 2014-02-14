@@ -57,12 +57,15 @@ window.requestAnimFrame = function(){
     // some initialization functions
     this.resizeCanvasToWindow();
 
-    whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height ),
-    this.fullsizeWidth = whiteboardDimensions.width;
-    this.fullsizeHeight = whiteboardDimensions.height;
 
     this.initializeListeners();
     this.drawLoop();
+  };
+
+  Whiteboard.prototype.cacheFullsizeDimensions = function() {
+    var whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height );
+    this.fullsizeWidth = whiteboardDimensions.width;
+    this.fullsizeHeight = whiteboardDimensions.height;
   };
 
   // initialize the offscreen image whiteboard and return it
@@ -89,6 +92,8 @@ window.requestAnimFrame = function(){
 
     this.whiteboard.width = fullsizeWidth;
     this.whiteboard.height = fullsizeHeight;
+
+    this.cacheFullsizeDimensions();
   };
 
   // convenience method for adding event listener to the whiteboard canvas element
@@ -233,6 +238,8 @@ window.requestAnimFrame = function(){
     if ( isNaN(this.zoomRatio) ) { this.zoomRatio = 1; } // fail-safe; if zoom is bad, set it to 1.0
     if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; } // max zoom is 2
     if ( this.zoomRatio < .25 ) { this.zoomRatio = .25; } // min zoom is .1
+
+    this.cacheFullsizeDimensions();
 
     return this.zoomRatio;
   };
