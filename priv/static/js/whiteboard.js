@@ -55,6 +55,7 @@ window.requestAnimFrame = function(){
     // some initialization functions
     this.resizeCanvasToWindow();
     this.initializeListeners();
+    this.drawLoop();
   };
 
   // initialize the offscreen image whiteboard and return it
@@ -105,11 +106,10 @@ window.requestAnimFrame = function(){
 
       var dx = event.wheelDeltaX,
           dy = event.wheelDeltaY,
-          inverted = event.webkitDirectionInvertedFromDevice,
           scrollDx = this.translateZoomFromLocalToFullsize( dx ),
           scrollDy = this.translateZoomFromLocalToFullsize( dy );
 
-      this.scroll( scrollDx, scrollDy, inverted );
+      this.scroll( scrollDx, scrollDy );
     }.bind(this));
 
     window.addEventListener( 'keydown', this.handleKeyDown.bind(this) );
@@ -159,25 +159,16 @@ window.requestAnimFrame = function(){
    *  scroll deltas
    *  this uses actual image size values
    */
-  Whiteboard.prototype.scroll = function( dx, dy, is_inverted, doRedraw ) {
-    if ( typeof is_inverted === 'undefined' ) { is_inverted = false; }
-    if ( typeof doRedraw === 'undefined' ) { doRedraw = true; }
-
-    if (is_inverted) {
-      dx = -dx;
-      dy = -dy;
-    }
-
+  Whiteboard.prototype.scroll = function( dx, dy ) {
     this.scrollX -= dx;
     this.scrollY -= dy;
 
-    this.scrollTo( undefined, undefined, doRedraw );
+    this.scrollTo( );
   };
 
-  Whiteboard.prototype.scrollTo = function( x, y, doRedraw ) {
+  Whiteboard.prototype.scrollTo = function( x, y ) {
     if ( typeof x === 'undefined' ) { x = this.scrollX; }
     if ( typeof y === 'undefined' ) { y = this.scrollY; }
-    if ( typeof doRedraw === 'undefined' ) { doRedraw = true; }
 
     var whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height ),
         maxXScroll = this.image.width - whiteboardDimensions.width,
@@ -200,42 +191,35 @@ window.requestAnimFrame = function(){
     } else if ( this.scrollY > maxYScroll ) {
       this.scrollY = maxYScroll;
     }
+  };
 
-    if ( doRedraw ) {
-      this.redraw();
-    }
+  Whiteboard.prototype.drawLoop = function() {
+    window.requestAnimFrame( this.drawLoop.bind(this) );
+    this.redraw();
   };
 
   Whiteboard.prototype.redraw = function() {
-    if ( this.currentlyDrawing ) { return; }
+    // the width/height of the visible section of the source image
+    // based on the whiteboard's dimensions (with zoom taken into account)
+    var whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height ),
+        sourceWidth = whiteboardDimensions.width,
+        sourceHeight = whiteboardDimensions.height;
 
-    this.currentlyDrawing = true;
-    window.requestAnimFrame(function() {
+    this.whiteboardCtx.drawImage(
+      this.image,
 
-      // the width/height of the visible section of the source image
-      // based on the whiteboard's dimensions (with zoom taken into account)
-      var whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height ),
-          sourceWidth = whiteboardDimensions.width,
-          sourceHeight = whiteboardDimensions.height;
+      // where on the source image to draw from
+      this.scrollX,
+      this.scrollY,
+      sourceWidth,
+      sourceHeight,
 
-      this.whiteboardCtx.drawImage(
-        this.image,
-
-        // where on the source image to draw from
-        this.scrollX,
-        this.scrollY,
-        sourceWidth,
-        sourceHeight,
-
-        // where on the local canvas to draw to
-        0,
-        0,
-        this.whiteboard.width,
-        this.whiteboard.height
-      );
-
-      this.currentlyDrawing = false;
-    }.bind(this));
+      // where on the local canvas to draw to
+      0,
+      0,
+      this.whiteboard.width,
+      this.whiteboard.height
+    );
   };
 
   Whiteboard.prototype.setZoom = function( newZoom ) {
@@ -301,8 +285,7 @@ window.requestAnimFrame = function(){
     dx = preCenterFull.x - postCenterFull.x;
     dy = preCenterFull.y - postCenterFull.y;
 
-    this.scroll( dx, dy, true );
-    this.redraw();
+    this.scroll( -dx, -dy );
   };
 
   // receive pen event from server
@@ -332,9 +315,6 @@ window.requestAnimFrame = function(){
     ctx.fill();
 
     this.penStatuses[message.userId] = { x: message.x, y: message.y };
-
-    // render offscreen image to onscreen canvas
-    this.redraw();
   };
 
   // receive pen-up from server
@@ -373,7 +353,7 @@ window.requestAnimFrame = function(){
         dx         = oft1.x - ft1.x,
         dy         = oft1.y - ft1.y;
 
-    this.scroll( dx, dy, true );
+    this.scroll( -dx, -dy );
   };
 
   // interaction event handers
