@@ -13,6 +13,8 @@ window.requestAnimFrame = function(){
 
 (function( window, document) {
   var Whiteboard = function( host, element ) {
+    var whiteboardDimensions;
+
     this.whiteboard = element;
     this.messageBus = new MessageBus()
                             .subscribe( 'receive_draw',   this.handleUpdate.bind(this) )
@@ -54,6 +56,11 @@ window.requestAnimFrame = function(){
 
     // some initialization functions
     this.resizeCanvasToWindow();
+
+    whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height ),
+    this.fullsizeWidth = whiteboardDimensions.width;
+    this.fullsizeHeight = whiteboardDimensions.height;
+
     this.initializeListeners();
     this.drawLoop();
   };
@@ -201,9 +208,6 @@ window.requestAnimFrame = function(){
   Whiteboard.prototype.redraw = function() {
     // the width/height of the visible section of the source image
     // based on the whiteboard's dimensions (with zoom taken into account)
-    var whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height ),
-        sourceWidth = whiteboardDimensions.width,
-        sourceHeight = whiteboardDimensions.height;
 
     this.whiteboardCtx.drawImage(
       this.image,
@@ -211,8 +215,8 @@ window.requestAnimFrame = function(){
       // where on the source image to draw from
       this.scrollX,
       this.scrollY,
-      sourceWidth,
-      sourceHeight,
+      this.fullsizeWidth,
+      this.fullsizeHeight,
 
       // where on the local canvas to draw to
       0,
