@@ -56,6 +56,8 @@ window.requestAnimFrame = function(){
     // store where each user's pen is (for connecting lines)
     this.penStatuses = {}; // hash keyed by userId
 
+    this.dirtyBuffer = true; // for deciding whether screen needs to update
+
     // some initialization functions
     this.resizeCanvasToWindow();
 
@@ -200,6 +202,8 @@ window.requestAnimFrame = function(){
     this.scrollX = Math.ceil( this.scrollX );
     this.scrollY = Math.ceil( this.scrollY );
 
+    this.dirtyBuffer = true;
+
     // if (this.scrollX < 0) {
       // this.scrollX = 0;
     // } else if ( this.scrollX > maxXScroll ) {
@@ -215,7 +219,18 @@ window.requestAnimFrame = function(){
 
   Whiteboard.prototype.drawLoop = function() {
     window.requestAnimFrame( this.drawLoop.bind(this) );
-    this.redraw();
+
+    // if the buffer is not dirty, then no need to redraw anything.
+    if ( ! this.dirtyBuffer ) { return; }
+
+    // mark buffer as not dirty
+    // do this as soon as possible so a future update doesn't mark this as dirty before the screen is updated
+    // if a bug crops up where there are race-conditions, then it might be better to use an int rather than a bool
+    // to ensure that we can keep things in sync.
+    // better to accidently do 1 more frame update than to skip one and miss data on the frontend
+    this.dirtyBuffer = false;
+
+    this.redraw(); // update the screen
   };
 
   Whiteboard.prototype.redraw = function() {
@@ -251,6 +266,8 @@ window.requestAnimFrame = function(){
     if ( this.zoomRatio < .25 ) { this.zoomRatio = .25; } // min zoom is .1
 
     this.cacheFullsizeDimensions();
+
+    this.dirtyBuffer = true;
 
     return this.zoomRatio;
   };
@@ -337,6 +354,8 @@ window.requestAnimFrame = function(){
     ctx.fill();
 
     this.penStatuses[message.userId] = { x: message.x, y: message.y };
+
+    this.dirtyBuffer = true;
   };
 
   // receive pen-up from server
