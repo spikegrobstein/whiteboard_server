@@ -25,9 +25,10 @@ window.requestAnimFrame = function(){
 
     this.client = new WhiteboardClient( host, this.messageBus );
 
-    // sizing ( 2x larger than 1080 )
-    this.width = 1920 * 2;
-    this.height = 1080 * 2;
+    // sizing ( 1080 HDTV size )
+    // this has to be < 3MP to work properly on iOS devices
+    this.width = 1920;
+    this.height = 1080;
 
     // initialize offscreen context
     this.image = this.createImage( this.width, this.height );
