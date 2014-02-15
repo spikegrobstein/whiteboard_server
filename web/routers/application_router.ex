@@ -17,11 +17,14 @@ defmodule ApplicationRouter do
     render conn, "index.html"
   end
 
+  post "/whiteboard" do
 
-  get "/join/:user" do
-    :gen_server.cast( :client_store, { :broadcast, [ :join, conn.params[:user] ] } )
+    whiteboard_name = conn.params["whiteboard-name"]
+    nick = conn.params["user"]
 
-    conn.send( 200, "OK" )
+    IO.puts "new user at #{ whiteboard_name } named #{ nick }"
+
+    conn.resp 200, "connected."
   end
 
 end

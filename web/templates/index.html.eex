@@ -6,9 +6,16 @@
 </head>
 <body>
   <h3>Welcome to Whiteboard :)</h3>
-  <form action="/static/index.html">
-    <label>Nick:</label>
-    <input type="text" name="user" value="anon" />
+  <form method="post" action="/whiteboard">
+    <div>
+      <label>Nick:</label>
+      <input type="text" name="user" value="anon" />
+    </div>
+
+    <div>
+      <label>Whiteboard:</label>
+      <input type="text" name="whiteboard-name" value="shared" />
+    </div>
 
     <input type="submit" />
   </form>

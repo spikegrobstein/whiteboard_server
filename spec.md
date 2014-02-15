@@ -141,3 +141,24 @@ From there, the router will parse the content of the message and do the appropri
 if the message is a `draw` event, it will push it to the broadcaster; or if it's a `get_users` message,
 it'll send out a `user_list` message.
 
+## Whiteboards
+
+A whiteboard has several properties. These include:
+
+ * `name` -- the name of the whiteboard
+ * `id` -- an identifier used for sending out invites
+ * `data` -- the data in the board (a list of draw events)
+ * `client_store` -- a pid to the client_store for this whiteboard.
+
+A whiteboard should act as a supervisor to its `client_store` process.
+
+A client can either create a new whiteboard or join an existing one. If creating a new one, it spins up a new
+instance of the Whiteboard process, which spins up an associated `client_store`. The client_store then gets the
+websocket pid added as a client, with any metadata that comes with it.
+
+When "logging in," the client should have a `whiteboard_id` and a `nick`. The whiteboard should already exist.
+
+
+
+Data comes in from a websocket (client) and is sent to the whiteboard `pid`, which then gets run through a router.
+If the process says to 
