@@ -34,6 +34,7 @@ window.requestAnimFrame = function(){
     this.image = this.createImage( this.width, this.height );
     this.imageCtx = this.image.getContext('2d');
     this.whiteboardCtx = this.whiteboard.getContext('2d');
+    this.pattern = this.createPattern();
 
     // properties of the local client
     this.zoomRatio = 1;
@@ -58,9 +59,15 @@ window.requestAnimFrame = function(){
     // some initialization functions
     this.resizeCanvasToWindow();
 
-
     this.initializeListeners();
     this.drawLoop();
+  };
+
+  Whiteboard.prototype.createPattern = function() {
+    var patternImg = document.getElementById('undefined-background'),
+        pattern = this.whiteboardCtx.createPattern( patternImg, 'repeat' );
+
+    return pattern;
   };
 
   Whiteboard.prototype.cacheFullsizeDimensions = function() {
@@ -193,17 +200,17 @@ window.requestAnimFrame = function(){
     this.scrollX = Math.ceil( this.scrollX );
     this.scrollY = Math.ceil( this.scrollY );
 
-    if (this.scrollX < 0) {
-      this.scrollX = 0;
-    } else if ( this.scrollX > maxXScroll ) {
-      this.scrollX = maxXScroll;
-    }
+    // if (this.scrollX < 0) {
+      // this.scrollX = 0;
+    // } else if ( this.scrollX > maxXScroll ) {
+      // this.scrollX = maxXScroll;
+    // }
 
-    if (this.scrollY < 0) {
-      this.scrollY = 0;
-    } else if ( this.scrollY > maxYScroll ) {
-      this.scrollY = maxYScroll;
-    }
+    // if (this.scrollY < 0) {
+      // this.scrollY = 0;
+    // } else if ( this.scrollY > maxYScroll ) {
+      // this.scrollY = maxYScroll;
+    // }
   };
 
   Whiteboard.prototype.drawLoop = function() {
@@ -214,6 +221,9 @@ window.requestAnimFrame = function(){
   Whiteboard.prototype.redraw = function() {
     // the width/height of the visible section of the source image
     // based on the whiteboard's dimensions (with zoom taken into account)
+
+    this.whiteboardCtx.fillStyle = this.pattern;
+    this.whiteboardCtx.fillRect( 0, 0, this.whiteboard.width, this.whiteboard.height );
 
     this.whiteboardCtx.drawImage(
       this.image,
