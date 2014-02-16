@@ -14,30 +14,44 @@ defmodule WhiteboardServer.Websocket do
 
     # read the user field from URL
     { user, _ } = :cowboy_req.qs_val("user", req, "anon")
+    { board_name, _ } = :cowboy_req.qs_val("board_name", req)
+
+    IO.puts "user #{ user } connecting to #{ board_name }"
 
     # add the client to the client store
-    :gen_server.cast( :client_store, { :add_client, { self, user } })
+    # :gen_server.cast( :client_store, { :add_client, { self, user } })
 
-    { :ok, req, :no_state }
+    # find the whiteboard
+    whiteboard = :gen_server.call( :board_store, { :get_by_name, board_name } )
+    IO.inspect whiteboard
+
+    IO.puts "joining #{ inspect(whiteboard.clients) }"
+
+    # join board
+    :gen_server.cast( whiteboard.clients, { :add_client, { self, user } })
+
+    IO.inspect whiteboard
+
+    { :ok, req, whiteboard }
   end
 
-  def websocket_info({ :message, message }, req, state) do
+  def websocket_info({ :message, message }, req, whiteboard ) do
     # IO.puts("websocket_info: #{ inspect message }")
-    { :reply, { :text, message }, req, state }
+    { :reply, { :text, message }, req, whiteboard }
   end
 
-  def websocket_handle({ :text, message }, req, state) do
+  def websocket_handle({ :text, message }, req, whiteboard) do
     { :ok, data } = JSON.decode( message )
 
-    :gen_server.cast( :client_store, { :handle_packet, self, data } )
+    :gen_server.cast( whiteboard.clients, { :handle_packet, self, data } )
 
     # :gen_server.cast( :client_store, { :broadcast, data } )
 
-    { :ok, req, state }
+    { :ok, req, whiteboard }
   end
 
-  def websocket_terminate(_reason, _req, _state) do
-    :gen_server.cast( :client_store, { :del_client, self } )
+  def websocket_terminate(_reason, _req, whiteboard) do
+    :gen_server.cast( whiteboard, { :del_client, self } )
 
     :ok
   end

@@ -2,7 +2,7 @@ defmodule WhiteboardServer.ClientStore do
   use GenServer.Behaviour
 
   def start_link( clients ) do
-    :gen_server.start_link({:local, :client_store}, __MODULE__, clients, [])
+    :gen_server.start_link(__MODULE__, clients, [])
   end
 
   def init( clients ) do

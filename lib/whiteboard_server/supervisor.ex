@@ -7,7 +7,7 @@ defmodule WhiteboardServer.Supervisor do
 
   def init( client_list ) do
     children = [
-      worker(WhiteboardServer.ClientStore, [ client_list ]),
+      worker(WhiteboardServer.BoardStore, [client_list]),
       supervisor(WhiteboardServer.Dynamo, [])
     ]
 
