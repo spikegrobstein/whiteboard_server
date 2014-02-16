@@ -21,6 +21,11 @@ defmodule WhiteboardServer.BoardStore do
     { :reply, get_by_name( whiteboards, name ), whiteboards }
   end
 
+  def handle_call( { :create_or_get_by_name, name }, _from, whiteboards ) do
+    [new|whiteboards] = create_or_get_by_name( whiteboards, name )
+    { :reply, new, [new|whiteboards] }
+  end
+
   def handle_call( :list, _from, whiteboards ) do
     { :reply, whiteboards, whiteboards }
   end
@@ -44,6 +49,16 @@ defmodule WhiteboardServer.BoardStore do
     Enum.find whiteboards, fn(x) ->
       x.name == name
     end
+  end
+
+  defp create_or_get_by_name( whiteboards, name ) do
+    whiteboard = get_by_name( whiteboards, name )
+
+    if whiteboard == nil do
+      [whiteboard|tail] = create( whiteboards, name )
+    end
+
+    [whiteboard|whiteboards]
   end
 
   defp destroy( whiteboards, name ) do

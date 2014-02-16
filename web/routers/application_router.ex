@@ -19,13 +19,16 @@ defmodule ApplicationRouter do
 
   post "/whiteboards" do
 
-    whiteboard_name = conn.params["whiteboard-name"]
+    board_name = conn.params["board-name"]
     nick = conn.params["user"]
 
-    IO.puts "new user at #{ whiteboard_name } named #{ nick }"
+    whiteboard = :gen_server.call( :board_store, { :get_by_name, board_name } )
 
+    IO.inspect whiteboard
 
-    conn.resp 200, "connected."
+    IO.puts "new user at #{ board_name } named #{ nick }"
+
+    redirect conn, to: "/static/index.html?user=#{ nick }&board_name=#{ board_name }"
   end
 
   post "/whiteboards/:name" do

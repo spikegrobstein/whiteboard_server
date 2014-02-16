@@ -6,7 +6,7 @@
 </head>
 <body>
   <h3>Welcome to Whiteboard :)</h3>
-  <form method="post" action="/whiteboard">
+  <form method="post" action="/whiteboards">
     <div>
       <label>Nick:</label>
       <input type="text" name="user" value="anon" />
@@ -14,7 +14,7 @@
 
     <div>
       <label>Whiteboard:</label>
-      <input type="text" name="whiteboard-name" value="shared" />
+      <input type="text" name="board-name" value="shared" />
     </div>
 
     <input type="submit" />

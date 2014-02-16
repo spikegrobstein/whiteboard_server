@@ -16,21 +16,11 @@ defmodule WhiteboardServer.Websocket do
     { user, _ } = :cowboy_req.qs_val("user", req, "anon")
     { board_name, _ } = :cowboy_req.qs_val("board_name", req)
 
-    IO.puts "user #{ user } connecting to #{ board_name }"
-
-    # add the client to the client store
-    # :gen_server.cast( :client_store, { :add_client, { self, user } })
-
     # find the whiteboard
-    whiteboard = :gen_server.call( :board_store, { :get_by_name, board_name } )
-    IO.inspect whiteboard
-
-    IO.puts "joining #{ inspect(whiteboard.clients) }"
+    whiteboard = :gen_server.call( :board_store, { :create_or_get_by_name, board_name } )
 
     # join board
     :gen_server.cast( whiteboard.clients, { :add_client, { self, user } })
-
-    IO.inspect whiteboard
 
     { :ok, req, whiteboard }
   end
