@@ -20,7 +20,7 @@ defmodule WhiteboardServer.Websocket do
     whiteboard = :gen_server.call( :board_store, { :create_or_get_by_name, board_name } )
 
     # join board
-    :gen_server.cast( whiteboard.clients, { :add_client, { self, user } })
+    :gen_server.cast( whiteboard.client_store, { :add_client, { self, user } })
 
     { :ok, req, whiteboard }
   end
@@ -33,7 +33,7 @@ defmodule WhiteboardServer.Websocket do
   def websocket_handle({ :text, message }, req, whiteboard) do
     { :ok, data } = JSON.decode( message )
 
-    :gen_server.cast( whiteboard.clients, { :handle_packet, self, data } )
+    :gen_server.cast( whiteboard.client_store, { :handle_packet, self, data } )
 
     # :gen_server.cast( :client_store, { :broadcast, data } )
 
@@ -41,7 +41,7 @@ defmodule WhiteboardServer.Websocket do
   end
 
   def websocket_terminate(_reason, _req, whiteboard) do
-    :gen_server.cast( whiteboard.clients, { :del_client, self } )
+    :gen_server.cast( whiteboard.client_store, { :del_client, self } )
 
     :ok
   end
