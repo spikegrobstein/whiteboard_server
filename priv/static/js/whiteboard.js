@@ -42,7 +42,7 @@ window.requestAnimFrame = function(){
 
     // initialize some of our state
     this.penWidth = 4;
-    this.penColor = "0000FF";
+    this.penColor = "FF0000";
 
     // local state of the pen
     // (used for tracking the difference between mousedrag and mousemove)
@@ -61,21 +61,20 @@ window.requestAnimFrame = function(){
   };
 
   Whiteboard.prototype.initializeMessageBus = function() {
-
     var messageBus = new MessageBus()
-                            .subscribe( 'receive_draw',   this.handleUpdate.bind(this) )
-                            .subscribe( 'receive_pen_up', this.handlePenUp.bind(this) )
-                            .subscribe( 'keyboard_zoom', this.handleKeyboardZoom.bind(this) )
+                          .subscribe( 'receive_draw',   this.handleUpdate.bind(this) )
+                          .subscribe( 'receive_pen_up', this.handlePenUp.bind(this) )
+                          .subscribe( 'keyboard_zoom', this.handleKeyboardZoom.bind(this) )
 
-                            .subscribe( 'set_pen_color', function( _event, penColor ) {
-                              this.penColor = penColor;
-                            }.bind(this))
-                            .subscribe( 'set_pen_width', function( _event, penWidth ) {
-                              this.penWidth = penWidth;
-                            }.bind(this));
+                          .subscribe( 'set_pen_color', function( _event, penColor ) {
+                            this.penColor = penColor;
+                          }.bind(this))
+                          .subscribe( 'set_pen_width', function( _event, penWidth ) {
+                            this.penWidth = penWidth;
+                          }.bind(this));
 
-                            // .subscribe( 'set_penColor',   this.handleSetPenColor.bind(this) )
-                            // .subscribe( 'set_penWidth',   this.handleSetPenWidth.bind(this) );
+                          // .subscribe( 'set_penColor',   this.handleSetPenColor.bind(this) )
+                          // .subscribe( 'set_penWidth',   this.handleSetPenWidth.bind(this) );
    return messageBus;
   };
 
