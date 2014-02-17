@@ -162,3 +162,27 @@ When "logging in," the client should have a `whiteboard_id` and a `nick`. The wh
 
 Data comes in from a websocket (client) and is sent to the whiteboard `pid`, which then gets run through a router.
 If the process says to 
+
+## Message Bus
+
+the message bus serves as a conduit for all inter-object communication, and in some cases, even intra-object.
+An established message bus protocol will keep everything running smoothly and allow maintainable code in the frontend.
+
+### Message types:
+
+#### Websocket-related
+
+ * `ws_connected` -- the websocket is connected
+ * `ws_disconnected` -- the websocket lost connection
+ * `ws_connection_error` -- the websocket has failed to reconnect 3x
+ * `ws_message` -- new msg came in over websocket. so anything can process data as it comes in
+ * `ws_send` -- send a message over the socket. this is so anything can send raw data
+
+#### incomming server events
+
+ * `user_list` -- received a full list of users
+ * `user_join` -- a user joined the whiteboard
+ * `user_part` -- a user left the board
+ * `user_draw` -- received a user draw event
+ * `user_pen_up` -- received a user pen-up event
+ *

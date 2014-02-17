@@ -16,12 +16,7 @@ window.requestAnimFrame = function(){
     var whiteboardDimensions;
 
     this.whiteboard = element;
-    this.messageBus = new MessageBus()
-                            .subscribe( 'receive_draw',   this.handleUpdate.bind(this) )
-                            .subscribe( 'receive_pen_up', this.handlePenUp.bind(this) )
-                            .subscribe( 'keyboard_zoom', this.handleKeyboardZoom.bind(this) );
-                            // .subscribe( 'set_penColor',   this.handleSetPenColor.bind(this) )
-                            // .subscribe( 'set_penWidth',   this.handleSetPenWidth.bind(this) );
+    this.messageBus = this.initializeMessageBus();
 
     this.client = new WhiteboardClient( host, this.messageBus );
 
@@ -63,6 +58,25 @@ window.requestAnimFrame = function(){
 
     this.initializeListeners();
     this.drawLoop();
+  };
+
+  Whiteboard.prototype.initializeMessageBus = function() {
+
+    var messageBus = new MessageBus()
+                            .subscribe( 'receive_draw',   this.handleUpdate.bind(this) )
+                            .subscribe( 'receive_pen_up', this.handlePenUp.bind(this) )
+                            .subscribe( 'keyboard_zoom', this.handleKeyboardZoom.bind(this) )
+
+                            .subscribe( 'set_pen_color', function( _event, penColor ) {
+                              this.penColor = penColor;
+                            }.bind(this))
+                            .subscribe( 'set_pen_width', function( _event, penWidth ) {
+                              this.penWidth = penWidth;
+                            }.bind(this));
+
+                            // .subscribe( 'set_penColor',   this.handleSetPenColor.bind(this) )
+                            // .subscribe( 'set_penWidth',   this.handleSetPenWidth.bind(this) );
+   return messageBus;
   };
 
   Whiteboard.prototype.createPattern = function() {

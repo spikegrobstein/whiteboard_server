@@ -25,18 +25,26 @@
     console.log('connected websocket!');
     this.connectionCount += 1;
     this.connectionDelay = 0;
+
+    this.messageBus.broadcast( 'ws_connected', {
+      connectionCount: this.conectionCount
+    } );
+
     this.requestUserList();
   };
 
   WhiteboardClient.prototype.handleWebsocketClose = function() {
+    this.messageBus.broadcast( 'ws_close', {} );
 
     this.connectionDelay += 1;
 
     if ( this.connectionDelay > 3 ) {
       this.connectionDelay = 3;
+
+      this.messageBus.broadcast( 'ws_connection_error', {} );
     }
 
-    console.log('Lost connection, reconnecting... (' + this.connectionDelay + ')');
+    // console.log('Lost connection, reconnecting... (' + this.connectionDelay + ')');
     setTimeout( this.connect.bind(this), this.connectionDelay * 1000 );
   };
 
@@ -47,7 +55,15 @@
 
     switch (event) {
     case "user_list":
-      this.messageBus.broadcast('receive_user_list', payload);
+      this.messageBus.broadcast('user_list', payload);
+      break;
+
+    case "user_join":
+      this.messageBus.broadcast('user_join', payload);
+      break;
+
+    case "user_part":
+      this.messageBus.broadcast('user_part', payload);
       break;
 
     case "draw":
@@ -56,14 +72,6 @@
 
     case "pen_up":
       this.messageBus.broadcast('receive_pen_up', payload);
-      break;
-
-    case "user_join":
-      this.messageBus.broadcast('receive_user_join', payload);
-      break;
-
-    case "user_part":
-      this.messageBus.broadcast('receive_user_part', payload);
       break;
 
     default:

@@ -1,22 +1,49 @@
 (function( window, document ) {
   window.whiteboard = new Whiteboard( 'ws://' + window.location.host + '/websocket' + window.location.search, document.getElementById('whiteboard') );
 
-  window.whiteboard.messageBus.subscribe( 'receive_user_list', function( _event, users ) {
-    console.log({got_user_list: users});
+  window.whiteboard.messageBus
+    // whiteboard connection info
+    .subscribe( 'ws_connected', function() {
+      var msg_ele = document.getElementById('message');
 
-    var i, user;
+      msg_ele.innerHTML = 'connected';
+    })
+    .subscribe( 'ws_disconnected', function() {
+      var msg_ele = document.getElementById('message');
 
-    for ( i in users ) {
-      user = users[i];
-      addUser( user );
-    }
-  })
-  .subscribe( 'receive_user_join', function( _event, userInfo ) {
-    addUser(userInfo);
-  })
-  .subscribe( 'receive_user_part', function( _event, userInfo) {
-    removeUser(userInfo);
-  });
+      msg_ele.innerHTML = 'disconnected';
+    })
+    .subscribe( 'ws_connection_error', function() {
+      var msg_ele = document.getElementById('message');
+
+      msg_ele.innerHTML = 'error';
+    })
+
+    // userlist interaction
+    .subscribe( 'user_list', function( _event, users ) {
+      console.log({got_user_list: users});
+
+      var i, user;
+
+      clearUsers();
+
+      for ( i in users ) {
+        user = users[i];
+        addUser( user );
+      }
+    })
+    .subscribe( 'user_join', function( _event, userInfo ) {
+      addUser(userInfo);
+    })
+    .subscribe( 'user_part', function( _event, userInfo) {
+      removeUser(userInfo);
+    });
+
+  function clearUsers() {
+    var user_list_ele = document.getElementById('user-list');
+
+    user_list_ele.innerHTML = '';
+  }
 
   function addUser( user ) {
     var user_list_ele = document.getElementById('user-list'),
@@ -53,7 +80,7 @@
     value = parseInt(value);
 
     if ( value > 0 ) {
-      window.whiteboard.penWidth = value;
+      window.whiteboard.messageBus.broadcast( 'set_pen_width', value );
     }
   });
 
@@ -61,7 +88,7 @@
     var value = this.value;
 
     if ( value.match(/^[a-f0-9]{6}/i) ) {
-      window.whiteboard.penColor = value;
+      window.whiteboard.messageBus.broadcast( 'set_pen_color', value );
     }
   });
 
