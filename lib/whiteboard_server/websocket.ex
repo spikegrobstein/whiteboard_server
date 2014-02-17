@@ -41,7 +41,7 @@ defmodule WhiteboardServer.Websocket do
   end
 
   def websocket_terminate(_reason, _req, whiteboard) do
-    :gen_server.cast( whiteboard, { :del_client, self } )
+    :gen_server.cast( whiteboard.clients, { :del_client, self } )
 
     :ok
   end
