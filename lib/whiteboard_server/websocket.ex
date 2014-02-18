@@ -32,6 +32,9 @@ defmodule WhiteboardServer.Websocket do
 
   def websocket_handle({ :text, message }, req, whiteboard) do
     { :ok, data } = JSON.decode( message )
+    { event, payload } = parse_packet( data )
+
+    route_packet( whiteboard, event, payload )
 
     :gen_server.cast( whiteboard.client_store, { :handle_packet, self, data } )
 
@@ -44,6 +47,26 @@ defmodule WhiteboardServer.Websocket do
     :gen_server.cast( whiteboard.client_store, { :del_client, self } )
 
     :ok
+  end
+
+  # given a packet of data from a client
+  # parse it out and return a tuple containing
+  # { event, payload }
+  defp parse_packet( packet ) do
+    { :ok, event } = HashDict.fetch( packet, "event" )
+    { :ok, payload } = HashDict.fetch( packet, "payload" )
+
+    { event, payload }
+  end
+
+  defp route_packet( whiteboard, event, payload ) do
+    case event do
+      "user_list" ->
+        # send the client the userlist
+
+      _ ->
+        :gen_server.cast whiteboard, { :ingest_packet, self, { event, payload } }
+    end
   end
 
 end
