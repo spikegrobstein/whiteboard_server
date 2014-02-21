@@ -1,8 +1,6 @@
 defmodule WhiteboardServer.BoardStore do
   use GenServer.Behaviour
 
-  defrecord Board, name: "", client_store: nil
-
   def start_link( whiteboards ) do
     :gen_server.start_link({:local, :board_store}, __MODULE__, whiteboards, [])
   end
@@ -41,13 +39,13 @@ defmodule WhiteboardServer.BoardStore do
   # creates new whiteboard with given name
   # returns list of whiteboards and whiteboard.
   defp create( whiteboards, name ) do
-    { :ok, client_store } = :gen_server.start_link(WhiteboardServer.ClientStore, [], [])
-    [ Board.new(name: name, client_store: client_store ) | whiteboards ]
+    { :ok, board } = :gen_server.start_link(WhiteboardServer.Board, name, [])
+    [ board | whiteboards ]
   end
 
-  defp get_by_name( whiteboards, name ) do
-    Enum.find whiteboards, fn(x) ->
-      x.name == name
+  defp get_by_name( whiteboards, target_name ) do
+    Enum.find whiteboards, fn({ name, _, _, _ }) ->
+      target_name == name
     end
   end
 
@@ -61,9 +59,9 @@ defmodule WhiteboardServer.BoardStore do
     [whiteboard|whiteboards]
   end
 
-  defp destroy( whiteboards, name ) do
-    Enum.reject whiteboards, fn(x) ->
-      x.name == name
+  defp destroy( whiteboards, target_name ) do
+    Enum.reject whiteboards, fn({ name, _, _, _ }) ->
+      target_name == name
     end
   end
 end

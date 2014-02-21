@@ -20,9 +20,13 @@ defmodule WhiteboardServer.Websocket do
     whiteboard = :gen_server.call( :board_store, { :create_or_get_by_name, board_name } )
 
     # join board
-    :gen_server.cast( whiteboard.client_store, { :add_client, { self, user } })
+    :gen_server.cast( whiteboard, { :add_user, { self, user } })
 
     { :ok, req, whiteboard }
+  end
+
+  def websocket_info({ :packet, { event, payload } }, req, whiteboard ) do
+    { :reply, { :text, ws_response( event, payload ) }, req, whiteboard }
   end
 
   def websocket_info({ :message, message }, req, whiteboard ) do
@@ -36,7 +40,7 @@ defmodule WhiteboardServer.Websocket do
 
     route_packet( whiteboard, event, payload )
 
-    :gen_server.cast( whiteboard.client_store, { :handle_packet, self, data } )
+    # :gen_server.cast( whiteboard, { :handle_packet, self, data } )
 
     # :gen_server.cast( :client_store, { :broadcast, data } )
 
@@ -44,9 +48,39 @@ defmodule WhiteboardServer.Websocket do
   end
 
   def websocket_terminate(_reason, _req, whiteboard) do
-    :gen_server.cast( whiteboard.client_store, { :del_client, self } )
+    :gen_server.cast( whiteboard, { :del_user, self } )
 
     :ok
+  end
+
+  defp route_packet( whiteboard, event, payload ) do
+    case event do
+      "user_list" ->
+        # send the client the userlist
+        user_list = :gen_server.call( whiteboard, :user_list )
+
+        # stringify the pids
+        user_list = Enum.map( user_list, fn({ pid, nick }) ->
+          [ userId: inspect(pid), nick: nick ]
+        end)
+
+        send self, { :packet, { "user_list", user_list } }
+
+      _ ->
+        :gen_server.cast whiteboard, { :ingest_packet, self, { event, payload } }
+    end
+  end
+
+  ## Util:
+
+  # given an event and payload, wrap up something to send to the
+  # cowboy websocket, with the data JSON-encoded
+  defp ws_response( event, payload ) do
+    new_packet = [ event: event, payload: payload ]
+
+    { :ok, json_packet } = JSON.encode( new_packet )
+
+    json_packet
   end
 
   # given a packet of data from a client
@@ -59,15 +93,6 @@ defmodule WhiteboardServer.Websocket do
     { event, payload }
   end
 
-  defp route_packet( whiteboard, event, payload ) do
-    case event do
-      "user_list" ->
-        # send the client the userlist
-
-      _ ->
-        :gen_server.cast whiteboard, { :ingest_packet, self, { event, payload } }
-    end
-  end
 
 end
 
