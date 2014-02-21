@@ -28,7 +28,7 @@ defmodule WhiteboardServer.Board do
     case event do
       "draw" ->
         # they sent a draw event, let's process it
-        IO.inspect(payload)
+        # IO.inspect(payload)
         { counter, data } = ingest_draw( counter, clients, data, pid, payload )
 
       "pen_up" ->
@@ -37,7 +37,7 @@ defmodule WhiteboardServer.Board do
         # stopped so they can clear local pen values for that user
         # payload is ignored
         IO.puts "pen_up"
-        broadcast clients, "pen_up", pid
+        broadcast clients, "pen_up", [ userId: inspect(pid) ]
 
       "console" ->
         IO.inspect(payload)
@@ -113,6 +113,10 @@ defmodule WhiteboardServer.Board do
   # process a draw event, broadcast to clients, return {counter, data}
   defp ingest_draw( counter, clients, data, pid, payload ) do
     IO.inspect { :ingest_draw, payload }
+
+    payload = HashDict.put(payload, :userId, inspect(pid))
+
+    broadcast clients, "draw", payload
 
     { counter, data }
   end
