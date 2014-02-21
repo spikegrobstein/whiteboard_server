@@ -17,7 +17,9 @@ defmodule WhiteboardServer.Websocket do
     { board_name, _ } = :cowboy_req.qs_val("board_name", req)
 
     # find the whiteboard
-    whiteboard = :gen_server.call( :board_store, { :create_or_get_by_name, board_name } )
+    { _, whiteboard } = :gen_server.call( :board_store, { :create_or_get_by_name, board_name } )
+
+    IO.puts "started whiteboard #{ inspect whiteboard }"
 
     # join board
     :gen_server.cast( whiteboard, { :add_user, { self, user } })

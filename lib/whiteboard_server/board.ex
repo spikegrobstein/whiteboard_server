@@ -14,6 +14,7 @@ defmodule WhiteboardServer.Board do
   # }
 
   def init( name ) do
+    IO.puts "created board with #{ name } (#{ inspect self })"
     { :ok, { name, 0, [], [] } }
   end
 
@@ -56,6 +57,7 @@ defmodule WhiteboardServer.Board do
     broadcast to everyone that this user joined
   """
   def handle_cast( { :add_user, { pid, nick } }, { name, counter, clients, data } ) do
+    IO.puts "add user: #{ inspect pid } - #{ nick }"
     broadcast clients, "user_join", { pid, nick }
 
     clients = add_client( clients, { pid, nick } )

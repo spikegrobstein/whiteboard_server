@@ -40,11 +40,11 @@ defmodule WhiteboardServer.BoardStore do
   # returns list of whiteboards and whiteboard.
   defp create( whiteboards, name ) do
     { :ok, board } = :gen_server.start_link(WhiteboardServer.Board, name, [])
-    [ board | whiteboards ]
+    [ { name, board } | whiteboards ]
   end
 
   defp get_by_name( whiteboards, target_name ) do
-    Enum.find whiteboards, fn({ name, _, _, _ }) ->
+    Enum.find whiteboards, fn({ name, _board }) ->
       target_name == name
     end
   end
@@ -53,7 +53,7 @@ defmodule WhiteboardServer.BoardStore do
     whiteboard = get_by_name( whiteboards, name )
 
     if whiteboard == nil do
-      [whiteboard|tail] = create( whiteboards, name )
+      [whiteboard|_tail] = create( whiteboards, name )
     end
 
     [whiteboard|whiteboards]
