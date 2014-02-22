@@ -72,7 +72,7 @@ defmodule WhiteboardServer.Board do
     broadcast to everyone that they left
   """
   def handle_cast( { :del_user, pid }, { name, counter, clients, data } ) do
-    broadcast clients, "user_leave", { pid }
+    broadcast clients, "user_leave", { inspect(pid) }
 
     clients = del_client( clients, pid )
 
