@@ -55,23 +55,14 @@
 
     switch (event) {
     case "user_list":
-      this.messageBus.broadcast('user_list', payload);
-      break;
-
     case "user_join":
-      this.messageBus.broadcast('user_join', payload);
-      break;
-
     case "user_part":
-      this.messageBus.broadcast('user_part', payload);
+      this.messageBus.broadcast( event, payload );
       break;
 
     case "draw":
-      this.messageBus.broadcast('receive_draw', payload);
-      break;
-
     case "pen_up":
-      this.messageBus.broadcast('receive_pen_up', payload);
+      this.messageBus.broadcast( 'receive_' + event, payload );
       break;
 
     default:
