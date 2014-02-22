@@ -60,7 +60,7 @@ defmodule WhiteboardServer.Board do
   """
   def handle_cast( { :add_user, { pid, nick } }, { name, counter, clients, data } ) do
     IO.puts "add user: #{ inspect pid } - #{ nick }"
-    broadcast clients, "user_join", { pid, nick }
+    broadcast clients, "user_join", { inspect(pid), nick }
 
     clients = add_client( clients, { pid, nick } )
 
