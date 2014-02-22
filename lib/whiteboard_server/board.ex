@@ -38,6 +38,9 @@ defmodule WhiteboardServer.Board do
         # payload is ignored
         { counter, data } = ingest_draw( counter, clients, data, pid, event, payload )
 
+      "get_range" ->
+        stream_data_to_client( data, payload, pid )
+
       "console" ->
         IO.inspect(payload)
 
@@ -74,6 +77,15 @@ defmodule WhiteboardServer.Board do
     clients = del_client( clients, pid )
 
     { :noreply, { name, counter, clients, data } }
+  end
+
+  @doc """
+    send back info about this whiteboard
+  """
+  def handle_call( :hello, _from, state ) do
+    { name, counter, clients, _ } = state
+
+    { :reply, { name, counter, clients }, state }
   end
 
   @doc """
@@ -119,8 +131,28 @@ defmodule WhiteboardServer.Board do
 
     broadcast clients, event, payload
 
-    { counter, Enum.concat(data, payload) }
+    { counter, [{ event, payload }|data] }
   end
 
+  # stream the data to the given pid
+  # payload should be a HashDict with a from and to field.
+  defp stream_data_to_client( data, payload, pid ) do
+    from = HashDict.get( payload, "from" )
+    to = HashDict.get( payload, "to" )
+
+    # fetch the sequences in the range
+    # reverse it
+    # send to client
+    data
+    |> Enum.filter( fn({ event, payload}) ->
+        sequence = HashDict.get( payload, :sequence, 0 )
+        sequence >= from && sequence <= to
+      end )
+    |> Enum.reverse
+    |> Enum.each( fn({ event, payload }) ->
+        IO.puts "sending #{ event } to client..."
+        send pid, { :packet, { event, payload } }
+      end )
+  end
 
 end

@@ -349,7 +349,9 @@ window.requestAnimFrame = function(){
         onscreenCtx = this.whiteboardCtx;
 
     // set background on this user
-    userEle.style.backgroundColor = "#" + message.penColor;
+    if ( userEle ) {
+      userEle.style.backgroundColor = "#" + message.penColor;
+    }
 
     ctx.fillStyle = "#" + message.penColor;
     // ctx.fillRect( message.x, message.y, 2, 2 );
@@ -377,7 +379,9 @@ window.requestAnimFrame = function(){
         userEleId = message.userId.replace(/[^a-z0-9]/ig, ''),
         userEle = document.getElementById(userEleId);
 
-    userEle.style.backgroundColor = "transparent";
+    if ( userEle ) {
+      userEle.style.backgroundColor = "transparent";
+    }
 
     delete this.penStatuses[userId];
   };

@@ -58,6 +58,8 @@ defmodule WhiteboardServer.Websocket do
   defp route_packet( whiteboard, event, payload ) do
     case event do
       "user_list" ->
+        IO.puts "Received user_list request."
+
         # send the client the userlist
         user_list = :gen_server.call( whiteboard, :user_list )
 
@@ -68,6 +70,16 @@ defmodule WhiteboardServer.Websocket do
 
         send self, { :packet, { "user_list", user_list } }
 
+      "hello" ->
+        IO.puts "Received hello."
+
+        { name, counter, user_list } = :gen_server.call( whiteboard, :hello )
+
+        user_list = Enum.map( user_list, fn({ pid, nick }) ->
+          [ userId: inspect(pid), nick: nick ]
+        end)
+
+        send self, { :packet, { "hello", [ name: name, userList: user_list, sequence: counter ] } }
       _ ->
         :gen_server.cast whiteboard, { :ingest_packet, self, { event, payload } }
     end
