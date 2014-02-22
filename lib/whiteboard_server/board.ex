@@ -112,13 +112,15 @@ defmodule WhiteboardServer.Board do
 
   # process a draw event, broadcast to clients, return {counter, data}
   defp ingest_draw( counter, clients, data, pid, payload ) do
-    IO.inspect { :ingest_draw, payload }
+    IO.inspect { :ingest_draw, counter, payload }
+    counter = counter + 1
 
     payload = HashDict.put(payload, :userId, inspect(pid))
+    payload = HashDict.put(payload, :sequence, counter)
 
     broadcast clients, "draw", payload
 
-    { counter, data }
+    { counter, Enum.concat(data, payload) }
   end
 
 
