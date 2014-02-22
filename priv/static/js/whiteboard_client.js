@@ -139,7 +139,7 @@
       console.log("Received a sequence that's out of range (" + sequence + ")");
       console.log("Requensting from " + (this.currentSequence + 1) + ' to ' + (sequence - 1) );
 
-      this.requestUpdateRange( this.currentSequence + 1, sequence - 1 );
+      this.requestUpdateRange( this.currentSequence + 1, sequence );
 
       return false;
     }
