@@ -29,15 +29,14 @@ defmodule WhiteboardServer.Board do
       "draw" ->
         # they sent a draw event, let's process it
         # IO.inspect(payload)
-        { counter, data } = ingest_draw( counter, clients, data, pid, payload )
+        { counter, data } = ingest_draw( counter, clients, data, pid, event, payload )
 
       "pen_up" ->
         # received when a client stops drawing
         # this is broadcast to all clients that the user
         # stopped so they can clear local pen values for that user
         # payload is ignored
-        IO.puts "pen_up"
-        broadcast clients, "pen_up", [ userId: inspect(pid) ]
+        { counter, data } = ingest_draw( counter, clients, data, pid, event, payload )
 
       "console" ->
         IO.inspect(payload)
@@ -111,14 +110,14 @@ defmodule WhiteboardServer.Board do
   end
 
   # process a draw event, broadcast to clients, return {counter, data}
-  defp ingest_draw( counter, clients, data, pid, payload ) do
-    IO.inspect { :ingest_draw, counter, payload }
+  defp ingest_draw( counter, clients, data, pid, event, payload ) do
+    IO.inspect { :ingest_draw, event, counter, payload }
     counter = counter + 1
 
     payload = HashDict.put(payload, :userId, inspect(pid))
     payload = HashDict.put(payload, :sequence, counter)
 
-    broadcast clients, "draw", payload
+    broadcast clients, event, payload
 
     { counter, Enum.concat(data, payload) }
   end
