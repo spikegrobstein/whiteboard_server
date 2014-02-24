@@ -39,7 +39,6 @@
       connectionCount: this.conectionCount
     } );
 
-    // this.requestUserList();
     this.sendHello();
   };
 
@@ -86,10 +85,12 @@
       // this.replayQueue.push( data );
     // }
 
-    if ( sequence && this.checkSequence( sequence ) ) {
+    if ( sequence ) {
+      if ( ! this.checkSequence( sequence ) ) {
+        return;
+      }
+
       this.currentSequence = sequence;
-    } else {
-      return;
     }
 
     switch (event) {
@@ -115,10 +116,6 @@
     }
   };
 
-  WhiteboardClient.prototype.requestUserList = function() {
-    this.send( 'user_list', {} );
-  };
-
   WhiteboardClient.prototype.sendHello = function() {
     this.send( 'hello', {} );
   };
@@ -128,6 +125,8 @@
         sequence = payload.sequence,
         userList = payload.userList;
 
+    console.log('got hello');
+    console.log({client_user_list:userList});
     this.messageBus.broadcast( "user_list", userList );
 
     this.checkSequence( sequence );
@@ -137,7 +136,6 @@
     if ( sequence > this.currentSequence + 1 ) {
       // we have a problem
       console.log("Received a sequence that's out of range (" + sequence + ")");
-      console.log("Requensting from " + (this.currentSequence + 1) + ' to ' + (sequence - 1) );
 
       this.requestUpdateRange( this.currentSequence + 1, sequence );
 
@@ -148,6 +146,7 @@
   };
 
   WhiteboardClient.prototype.requestUpdateRange = function( from, to ) {
+    console.log("Requensting from " + from + ' to ' + to );
     this.send( 'get_range', { from: from, to: to } );
   };
 
