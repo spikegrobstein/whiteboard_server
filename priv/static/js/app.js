@@ -1,5 +1,6 @@
 (function( window, document ) {
   window.whiteboard = new Whiteboard( 'ws://' + window.location.host + '/websocket' + window.location.search, document.getElementById('whiteboard') );
+  window.userList = document.getElementById('user-list');
 
   window.whiteboard.messageBus
     // whiteboard connection info
@@ -40,24 +41,23 @@
     });
 
   function clearUsers() {
-    var user_list_ele = document.getElementById('user-list');
-
-    user_list_ele.innerHTML = '';
+    window.userList.innerHTML = '';
   }
 
   function addUser( user ) {
-    var user_list_ele = document.getElementById('user-list'),
-        userId = user.userId.replace(/[^a-z0-9]/ig, '');
+    var userId = user.userId.replace(/[^a-z0-9]/ig, ''),
+        nick = user.nick;
 
-    user_list_ele.innerHTML += '<li id="' + userId + '">' + user.nick + '</li>';
+    console.log("add user: " + nick );
+    window.userList.innerHTML += '<li id="' + userId + '">' + nick + '</li>';
   }
+  window.addUser = addUser;
 
   function removeUser( user ) {
-    var userListEle = document.getElementById('user-list'),
-        userId = user.userId.replace(/[^a-z0-9]/ig, ''),
+    var userId = user.userId.replace(/[^a-z0-9]/ig, ''),
         userEle = document.getElementById(userId);
 
-    userListEle.removeChild( userEle );
+    window.userList.removeChild( userEle );
   }
 
   var control_toggle_btn = document.getElementById('hideshow'),
