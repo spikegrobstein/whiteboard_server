@@ -8,6 +8,7 @@ when receiving, the packets should look like:
 
     {
       event: <event>,
+      headers: {},
       payload: <data>
     }
 
@@ -19,6 +20,11 @@ types of packets:
  * `draw`
  * `draw_end`
 
+Headers should contain a `sequence` or other data.
+
+*note*: Future versions of the protocol may shorten these names to `e`, `h`, and `p` or even treat the whole
+structure as an array.
+
 ### user_list
 
 Received to list all users on this whiteboard
@@ -26,10 +32,10 @@ Received to list all users on this whiteboard
 Data:
 
     {
-      users: [ <nick>, ... ]
+      users: [ { userId: <id>, nick: <nick> }, ... ]
     }
 
-Where it's an array of nicks.
+Where it's an array of user objects.
 
 ### user_join
 
@@ -38,8 +44,10 @@ Received when a user joins.
 Data:
 
     {
-      user: <nick>
+      user: { userId: <id>, nick: <nick> }
     }
+
+`<userId>` is a string that uniquely identifies an individual user.
 
 `<nick>` is a string
 
@@ -50,10 +58,10 @@ Received when a user disconnects from the session.
 Data:
 
     {
-      user: <nick>
+      user: <id>
     }
 
-Where `<nick>` is the user's nickname.
+Where `<id>` is the user's userId.
 
 ### draw
 
@@ -62,18 +70,34 @@ Received when a user is drawing.
 Data:
 
     {
-      user: <nick>,
+      userId: <id>,
       penWidth: <penWidth>,
       penColor: <penColor>,
       x: <x>,
       y: <y>
     }
 
- * `<nick>` is the user who is drawing.
+ * `<id>` is the user who is drawing.
  * `<penWidth>` is an integer > 0 that is the thickness of the pen
  * `<penColor>` a hex value (without hash) which is the color of this pen as a string (eg: "ff0000")
  * `<x>` is the x coordinate
  * `<y>` is the y coordinate
+
+#### Future
+
+Future versions may optimize this structure so that it uses less data over the wire. For instance,
+something like: `[ <userId>, [ <penWidth>, <penColor> ], [ x, y ] ]`.
+
+Comparing:
+
+    {"userId":"#PID<0.257.0>","penWidth":4,"penColor":"ff0000","x":500,"y":500}
+
+to
+
+    ["#PID<0.257.0>",[4,"ff0000"],[500,500]]
+
+That's 53% of the size.
+
 
 ### draw_end
 
@@ -82,7 +106,7 @@ Received when a user picks up his pen
 Data:
 
     {
-      user: <nick>
+      userId: <id>
     }
 
 The user who lifted his pen.
@@ -91,7 +115,7 @@ The user who lifted his pen.
 
 This is the format of packets that are sent from the client to the server
 
-Base structure (same as receiving):
+Base structure (same as receiving, but no headers):
 
     {
       event: <event>,
