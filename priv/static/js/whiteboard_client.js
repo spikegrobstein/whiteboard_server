@@ -74,7 +74,7 @@
     // when reach the end, flip the switch back.
 
     if ( sequence ) {
-      this.checkSequence( sequence ) || return;
+      if ( ! this.checkSequence( sequence ) ) { return; }
       this.currentSequence = sequence;
     }
 
