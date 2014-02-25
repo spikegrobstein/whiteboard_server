@@ -27,8 +27,8 @@ defmodule WhiteboardServer.Websocket do
     { :ok, req, whiteboard }
   end
 
-  def websocket_info({ :packet, { event, payload } }, req, whiteboard ) do
-    { :reply, { :text, ws_response( event, payload ) }, req, whiteboard }
+  def websocket_info({ :packet, packet }, req, whiteboard ) do
+    { :reply, { :text, ws_response( packet ) }, req, whiteboard }
   end
 
   def websocket_info({ :message, message }, req, whiteboard ) do
@@ -38,13 +38,9 @@ defmodule WhiteboardServer.Websocket do
 
   def websocket_handle({ :text, message }, req, whiteboard) do
     { :ok, data } = JSON.decode( message )
-    { event, payload } = parse_packet( data )
+    packet = parse_packet( data )
 
-    route_packet( whiteboard, event, payload )
-
-    # :gen_server.cast( whiteboard, { :handle_packet, self, data } )
-
-    # :gen_server.cast( :client_store, { :broadcast, data } )
+    route_packet( whiteboard, packet )
 
     { :ok, req, whiteboard }
   end
@@ -55,7 +51,7 @@ defmodule WhiteboardServer.Websocket do
     :ok
   end
 
-  defp route_packet( whiteboard, event, payload ) do
+  defp route_packet( whiteboard, { event, payload } ) do
     case event do
       "user_list" ->
         IO.puts "Received user_list request."
@@ -68,7 +64,7 @@ defmodule WhiteboardServer.Websocket do
           [ userId: inspect(pid), nick: nick ]
         end)
 
-        send self, { :packet, { "user_list", user_list } }
+        send self, { :packet, { "user_list", {}, user_list } }
 
       "hello" ->
         IO.puts "Received hello."
@@ -79,7 +75,7 @@ defmodule WhiteboardServer.Websocket do
           [ userId: inspect(pid), nick: nick ]
         end)
 
-        send self, { :packet, { "hello", [ name: name, userList: user_list, sequence: counter ] } }
+        send self, { :packet, { "hello", {}, [ name: name, userList: user_list, sequence: counter ] } }
       _ ->
         :gen_server.cast whiteboard, { :ingest_packet, self, { event, payload } }
     end
@@ -89,8 +85,8 @@ defmodule WhiteboardServer.Websocket do
 
   # given an event and payload, wrap up something to send to the
   # cowboy websocket, with the data JSON-encoded
-  defp ws_response( event, payload ) do
-    new_packet = [ event: event, payload: payload ]
+  defp ws_response( { event, headers, payload } ) do
+    new_packet = [ event: event, headers: headers, payload: payload ]
 
     { :ok, json_packet } = JSON.encode( new_packet )
 

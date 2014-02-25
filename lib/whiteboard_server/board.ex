@@ -60,7 +60,7 @@ defmodule WhiteboardServer.Board do
   """
   def handle_cast( { :add_user, { pid, nick } }, { name, counter, clients, data } ) do
     IO.puts "add user: #{ inspect pid } - #{ nick }"
-    broadcast clients, "user_join", { inspect(pid), nick }
+    broadcast clients, { "user_join", {}, { inspect(pid), nick } }
 
     clients = add_client( clients, { pid, nick } )
 
@@ -72,7 +72,7 @@ defmodule WhiteboardServer.Board do
     broadcast to everyone that they left
   """
   def handle_cast( { :del_user, pid }, { name, counter, clients, data } ) do
-    broadcast clients, "user_leave", { inspect(pid) }
+    broadcast clients, { "user_leave", {}, { inspect(pid) } }
 
     clients = del_client( clients, pid )
 
@@ -111,9 +111,11 @@ defmodule WhiteboardServer.Board do
 
   ## util
 
-  defp broadcast( clients, event, payload ) do
+  # given the list of clients and well-formed packet
+  # send all the clients the packet
+  defp broadcast( clients, packet ) do
     Enum.each clients, fn({ pid, _nick }) ->
-      send pid, { :packet, { event, payload } }
+      send pid, { :packet, packet }
     end
   end
 
@@ -126,12 +128,15 @@ defmodule WhiteboardServer.Board do
     IO.inspect { :ingest_draw, event, counter, payload }
     counter = counter + 1
 
-    payload = HashDict.put(payload, :userId, inspect(pid))
-    payload = HashDict.put(payload, :sequence, counter)
+    payload = HashDict.put( payload, :userId, inspect(pid) )
+    headers = HashDict.new( sequence: counter )
 
-    broadcast clients, event, payload
+    # create the packet tuple
+    packet = { event, headers, payload }
 
-    { counter, [{ event, payload }|data] }
+    broadcast clients, packet
+
+    { counter, [packet|data] }
   end
 
   # stream the data to the given pid
@@ -144,14 +149,15 @@ defmodule WhiteboardServer.Board do
     # reverse it
     # send to client
     data
-    |> Enum.filter( fn({ event, payload}) ->
-        sequence = HashDict.get( payload, :sequence, 0 )
+    |> Enum.filter( fn({ _event, headers, _payload}) ->
+        sequence = HashDict.get( headers, :sequence, 0 )
         sequence >= from && sequence <= to
       end )
     |> Enum.reverse
-    |> Enum.each( fn({ event, payload }) ->
+    |> Enum.each( fn( packet ) ->
+        { event, _headers, _payload } = packet
         IO.puts "sending #{ event } to client..."
-        send pid, { :packet, { event, payload } }
+        send pid, { :packet, packet }
       end )
   end
 

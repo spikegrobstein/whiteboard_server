@@ -23,7 +23,7 @@ types of packets:
 Headers should contain a `sequence` or other data.
 
 *note*: Future versions of the protocol may shorten these names to `e`, `h`, and `p` or even treat the whole
-structure as an array.
+structure as an array. Probably an array is best.
 
 ### user_list
 
