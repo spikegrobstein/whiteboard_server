@@ -57,62 +57,46 @@
     setTimeout( this.connect.bind(this), this.connectionDelay * 1000 );
   };
 
-  WhiteboardClient.prototype.handleWebsocketMessage = function( data ) {
-    var event = data.event,
-        payload = data.payload,
-        sequence = payload.sequence;
+  WhiteboardClient.prototype.handleWebsocketMessage = function( packet ) {
+    var event = packet.event,
+        payload = packet.payload,
+        headers = packet.headers,
+        sequence = headers.sequence;
 
     // a stream of data is coming in
-    // if the sequence goes out of sync, request bulk draw
+    // if the sequence goes out of sync,
+    //    throw packet in trash
+    //    request bulk draw
     // bulk draw will have a start and stop sequence number
     // the stop will be whatever the current sequence is
     // flip a switch, and any events that come in should go into a bucket
     // replay the bucket
     // when reach the end, flip the switch back.
 
-    // if ( sequence && ! this.updateSequence( sequence ) ) {
-      // this.requestHistoricData( this.sequence );
-
-      // return;
-      // // return if bad sequence.
-    // }
-
-    // if ( this.isReplaying ) {
-      // this.replayQueue.push( data );
-
-      // return;
-    // } else if ( sequence && ! this.checkSequence( sequence ) ) {
-      // this.replayQueue.push( data );
-    // }
-
     if ( sequence ) {
-      if ( ! this.checkSequence( sequence ) ) {
-        return;
-      }
-
+      this.checkSequence( sequence ) || return;
       this.currentSequence = sequence;
     }
 
     switch (event) {
+      // an info packet. contains some good info.
+      case "hello":
+        this.processHelloPacket( payload );
+        break;
 
-    // an info packet. contains some good info.
-    case "hello":
-      this.processHelloPacket( payload );
-      break;
+      case "user_list":
+      case "user_join":
+      case "user_part":
+        this.messageBus.broadcast( event, payload );
+        break;
 
-    case "user_list":
-    case "user_join":
-    case "user_part":
-      this.messageBus.broadcast( event, payload );
-      break;
+      case "draw":
+      case "pen_up":
+        this.messageBus.broadcast( 'receive_' + event, payload );
+        break;
 
-    case "draw":
-    case "pen_up":
-      this.messageBus.broadcast( 'receive_' + event, payload );
-      break;
-
-    default:
-      console.log("got unknown packet type: " + event);
+      default:
+        console.log("got unknown packet type: " + event);
     }
   };
 
@@ -120,13 +104,16 @@
     this.send( 'hello', {} );
   };
 
+  // hello packet contains the user list and current sequence of the board
+  // so pull out the user list and trigger the checkSequence() function.
   WhiteboardClient.prototype.processHelloPacket = function( payload ) {
     var name = payload.name,
-        sequence = payload.sequence,
+        sequence = payload.sequence, // the hello packet has the sequence in the payload.
         userList = payload.userList;
 
     console.log('got hello');
     console.log({client_user_list:userList});
+
     this.messageBus.broadcast( "user_list", userList );
 
     this.checkSequence( sequence );
