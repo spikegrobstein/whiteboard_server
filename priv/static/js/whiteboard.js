@@ -135,17 +135,7 @@ window.requestAnimFrame = function(){
     this.handle( 'mousedown',  this.handleMouseDown.bind(this)  );
     this.handle( 'mouseup',    this.handleMouseUp.bind(this)    );
     this.handle( 'mousemove',  this.handleMouseMove.bind(this)  );
-
-    this.handle( 'mousewheel', function(event) {
-      event.preventDefault();
-
-      var dx = event.wheelDeltaX,
-          dy = event.wheelDeltaY,
-          scrollDx = this.translateZoomFromLocalToFullsize( dx ),
-          scrollDy = this.translateZoomFromLocalToFullsize( dy );
-
-      this.scroll( scrollDx, scrollDy );
-    }.bind(this));
+    this.handle( 'mousewheel', this.handleMouseWheel.bind(this) );
 
     window.addEventListener( 'keydown', this.handleKeyDown.bind(this) );
   };
@@ -487,6 +477,19 @@ window.requestAnimFrame = function(){
 
     this.sendDrawEvent( 'mouse', x, y );
   };
+
+
+  Whiteboard.prototype.handleMouseWheel = function( event ) {
+    event.preventDefault();
+
+    var dx = event.wheelDeltaX,
+        dy = event.wheelDeltaY,
+        scrollDx = this.translateZoomFromLocalToFullsize( dx ),
+        scrollDy = this.translateZoomFromLocalToFullsize( dy );
+
+    this.scroll( scrollDx, scrollDy );
+  };
+
 
   Whiteboard.prototype.handleKeyDown = function( event ) {
 
