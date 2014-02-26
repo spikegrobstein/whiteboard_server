@@ -195,10 +195,6 @@ window.requestAnimFrame = function(){
     if ( typeof x === 'undefined' ) { x = this.scrollX; }
     if ( typeof y === 'undefined' ) { y = this.scrollY; }
 
-    var whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height ),
-        maxXScroll = this.image.width - whiteboardDimensions.width,
-        maxYScroll = this.image.height - whiteboardDimensions.height;
-
     this.scrollX = x;
     this.scrollY = y;
 
@@ -206,18 +202,6 @@ window.requestAnimFrame = function(){
     this.scrollY = Math.ceil( this.scrollY );
 
     this.dirtyBuffer = true;
-
-    // if (this.scrollX < 0) {
-      // this.scrollX = 0;
-    // } else if ( this.scrollX > maxXScroll ) {
-      // this.scrollX = maxXScroll;
-    // }
-
-    // if (this.scrollY < 0) {
-      // this.scrollY = 0;
-    // } else if ( this.scrollY > maxYScroll ) {
-      // this.scrollY = maxYScroll;
-    // }
   };
 
   Whiteboard.prototype.drawLoop = function() {
