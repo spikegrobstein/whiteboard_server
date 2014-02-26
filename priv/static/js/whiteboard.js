@@ -238,11 +238,8 @@ window.requestAnimFrame = function(){
     if ( typeof x === 'undefined' ) { x = this.scrollX; }
     if ( typeof y === 'undefined' ) { y = this.scrollY; }
 
-    this.scrollX = x;
-    this.scrollY = y;
-
-    this.scrollX = Math.ceil( this.scrollX );
-    this.scrollY = Math.ceil( this.scrollY );
+    this.scrollX = Math.ceil( x );
+    this.scrollY = Math.ceil( y );
 
     this.dirtyBuffer = true;
   };
