@@ -1,7 +1,8 @@
 (function( window, document ) {
   var WhiteboardClient = function( host, messageBus ) {
     this.messageBus = messageBus
-                        .subscribe( 'draw', this.receiveDraw.bind(this) );
+                        .subscribe( 'draw', this.receiveDraw.bind(this) )
+                        .subscribe( 'pen_up', this.receivePenUp.bind(this) );
                         // .subscribe( 'update', this, this.receiveUpdate.bind(this) );
 
     this.currentSequence = 0; // sanity checking
@@ -187,6 +188,10 @@
   WhiteboardClient.prototype.receiveDraw = function( messageType, message ) {
     this.send( 'draw', message );
   };
+
+  WhiteboardClient.prototype.receivePenUp = function( messageType, message ) {
+    this.send( 'pen_up', message );
+  }
 
   window.WhiteboardClient = WhiteboardClient;
 

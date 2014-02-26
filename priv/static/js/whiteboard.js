@@ -140,6 +140,49 @@ window.requestAnimFrame = function(){
     window.addEventListener( 'keydown', this.handleKeyDown.bind(this) );
   };
 
+  Whiteboard.prototype.drawLoop = function() {
+    window.requestAnimFrame( this.drawLoop.bind(this) );
+
+    // if the buffer is not dirty, then no need to redraw anything.
+    if ( ! this.dirtyBuffer ) { return; }
+
+    // mark buffer as not dirty
+    // do this as soon as possible so a future update doesn't mark this as dirty before the screen is updated
+    // if a bug crops up where there are race-conditions, then it might be better to use an int rather than a bool
+    // to ensure that we can keep things in sync.
+    // better to accidently do 1 more frame update than to skip one and miss data on the frontend
+    this.dirtyBuffer = false;
+
+    this.redraw(); // update the screen
+  };
+
+  Whiteboard.prototype.redraw = function() {
+    // the width/height of the visible section of the source image
+    // based on the whiteboard's dimensions (with zoom taken into account)
+
+    this.whiteboardCtx.fillStyle = this.pattern;
+    this.whiteboardCtx.fillRect( 0, 0, this.whiteboard.width, this.whiteboard.height );
+
+    this.whiteboardCtx.drawImage(
+      this.image,
+
+      // where on the source image to draw from
+      this.scrollX,
+      this.scrollY,
+      this.fullsizeWidth,
+      this.fullsizeHeight,
+
+      // where on the local canvas to draw to
+      0,
+      0,
+      this.whiteboard.width,
+      this.whiteboard.height
+    );
+  };
+
+  // Utility Functions
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+
   Whiteboard.prototype.translateZoomFromLocalToFullsize = function( d ) {
     return d / this.zoomRatio;
   };
@@ -204,46 +247,6 @@ window.requestAnimFrame = function(){
     this.dirtyBuffer = true;
   };
 
-  Whiteboard.prototype.drawLoop = function() {
-    window.requestAnimFrame( this.drawLoop.bind(this) );
-
-    // if the buffer is not dirty, then no need to redraw anything.
-    if ( ! this.dirtyBuffer ) { return; }
-
-    // mark buffer as not dirty
-    // do this as soon as possible so a future update doesn't mark this as dirty before the screen is updated
-    // if a bug crops up where there are race-conditions, then it might be better to use an int rather than a bool
-    // to ensure that we can keep things in sync.
-    // better to accidently do 1 more frame update than to skip one and miss data on the frontend
-    this.dirtyBuffer = false;
-
-    this.redraw(); // update the screen
-  };
-
-  Whiteboard.prototype.redraw = function() {
-    // the width/height of the visible section of the source image
-    // based on the whiteboard's dimensions (with zoom taken into account)
-
-    this.whiteboardCtx.fillStyle = this.pattern;
-    this.whiteboardCtx.fillRect( 0, 0, this.whiteboard.width, this.whiteboard.height );
-
-    this.whiteboardCtx.drawImage(
-      this.image,
-
-      // where on the source image to draw from
-      this.scrollX,
-      this.scrollY,
-      this.fullsizeWidth,
-      this.fullsizeHeight,
-
-      // where on the local canvas to draw to
-      0,
-      0,
-      this.whiteboard.width,
-      this.whiteboard.height
-    );
-  };
-
   Whiteboard.prototype.setZoom = function( newZoom ) {
     this.zoomRatio = newZoom;
 
@@ -266,16 +269,16 @@ window.requestAnimFrame = function(){
     var translatedCoordinates = this.translateFromLocalToFullsize( x, y );
 
     this.messageBus.broadcast( 'draw', {
-      pointer: pointer,
-      x: translatedCoordinates.x,
-      y: translatedCoordinates.y,
+      pointer:  pointer,
+      x:        translatedCoordinates.x,
+      y:        translatedCoordinates.y,
       penWidth: this.penWidth,
       penColor: this.penColor
     } );
   };
 
   Whiteboard.prototype.sendPenUp = function() {
-    this.client.send( 'pen_up', {} );
+    this.messageBus.broadcast( 'pen_up', {} );
   };
 
   // event receivers
