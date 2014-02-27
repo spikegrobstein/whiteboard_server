@@ -167,14 +167,14 @@ window.requestAnimFrame = function(){
       this.image,
 
       // where on the source image to draw from
-      this.scrollX,
-      this.scrollY,
+      this.scrollX < 0 ? 0 : this.scrollX, // ios can't draw negative
+      this.scrollY < 0 ? 0 : this.scrollY,
       this.fullsizeWidth,
       this.fullsizeHeight,
 
       // where on the local canvas to draw to
-      0,
-      0,
+      this.scrollX < 0 ? Math.abs(this.scrollX) : 0,
+      this.scrollY < 0 ? Math.abs(this.scrollY) : 0,
       this.whiteboard.width,
       this.whiteboard.height
     );
