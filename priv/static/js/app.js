@@ -36,8 +36,14 @@
     .subscribe( 'user_join', function( _event, userInfo ) {
       addUser(userInfo);
     })
-    .subscribe( 'user_part', function( _event, userInfo) {
+    .subscribe( 'user_part', function( _event, userInfo ) {
       removeUser(userInfo);
+    })
+    .subscribe( 'receive_draw', function( _event, userInfo ) {
+      highlightUser( userInfo.userId, true );
+    })
+    .subscribe( 'receive_pen_up', function( _event, userInfo ) {
+      highlightUser( userInfo.userId, false )
     });
 
   function clearUsers() {
@@ -58,6 +64,10 @@
         userEle = document.getElementById(userId);
 
     window.userList.removeChild( userEle );
+  }
+
+  function highlightUser( id, enable ) {
+    console.log('highlight user: ' + id + ' - ' + enable);
   }
 
   var control_toggle_btn = document.getElementById('hideshow'),
