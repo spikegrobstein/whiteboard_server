@@ -146,9 +146,9 @@
 
       return false;
 
-    } else if ( sequence <= this.currentSequence ) {
+    } else if ( this.currentSequence > 0 && sequence <= this.currentSequence ) {
       // this is very bad. we're ahead of the server somehow?
-      alert('A totally fatal error has occurred. Our sequence is too new new.');
+      alert('A totally fatal error has occurred. Our sequence is too new new. (' + sequence + ' <= ' + this.currentSequence + ')');
       return false;
     }
 
