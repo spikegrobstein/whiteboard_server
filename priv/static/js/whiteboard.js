@@ -203,8 +203,8 @@ window.requestAnimFrame = function(){
 
   Whiteboard.prototype.translateFromFullsizeToLocal = function( x, y ) {
     return {
-      x: ( x * this.zoomRatio ) - this.scrollX,
-      y: ( y * this.zoomRatio ) - this.scrollY
+      x: Math.round( (x - this.scrollX) * this.zoomRatio ),
+      y: Math.round( (y - this.scrollY) * this.zoomRatio )
     };
   };
 
