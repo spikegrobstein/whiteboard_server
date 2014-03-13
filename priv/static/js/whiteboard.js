@@ -184,11 +184,11 @@ window.requestAnimFrame = function(){
   ///////////////////////////////////////////////////////////////////////////////////////////////
 
   Whiteboard.prototype.translateZoomFromLocalToFullsize = function( d ) {
-    return d / this.zoomRatio;
+    return Math.round( d / this.zoomRatio );
   };
 
   Whiteboard.prototype.translateZoomFromFullsizeToLocal = function( d ) {
-    return d * this.zoomRatio;
+    return Math.round( d * this.zoomRatio );
   };
 
   // return an object with x and y keys
@@ -196,8 +196,8 @@ window.requestAnimFrame = function(){
   // takes scrolling and zooming into account
   Whiteboard.prototype.translateFromLocalToFullsize = function( x, y ) {
     return {
-      x: this.scrollX + ( x / this.zoomRatio ),
-      y: this.scrollY + ( y / this.zoomRatio )
+      x: this.scrollX + Math.round( x / this.zoomRatio ),
+      y: this.scrollY + Math.round( y / this.zoomRatio )
     };
   };
 
@@ -211,17 +211,33 @@ window.requestAnimFrame = function(){
   // given a width and height of the viewport, get width and height in fullsize
   Whiteboard.prototype.translateDimensionsFromLocalToFullsize = function( w, h ) {
     return {
-      width: w / this.zoomRatio,
-      height: h / this.zoomRatio
+      width: this.translateDimensionFromLocalToFullsize( w ),
+      height: this.translateDimensionFromLocalToFullsize( h )
     };
   };
 
   Whiteboard.prototype.translateDimensionsFromFullsizeToLocal = function( w, h ) {
     return {
-      width: w * this.zoomRatio,
-      height: h * this.zoomRatio
+      width: this.translateDimensionFromFullsizeToLocal( w ),
+      height: this.translateDimensionFromFullsizeToLocal( h )
     };
   };
+
+  /*
+   * given a dimension in view scale
+   * return its value at fullsize scale.
+   */
+  Whiteboard.prototype.translateDimensionFromLocalToFullsize = function( d ) {
+    return Math.round( d / this.zoomRatio );
+  }
+
+  /*
+   * given a dimension in full scale
+   * return its value at view scale
+   */
+  Whiteboard.prototype.translateDimensionFromFullsizeToLocal = function( d ) {
+    return Math.round( d * this.zoomRatio );
+  }
 
   /*
    *  scroll deltas
