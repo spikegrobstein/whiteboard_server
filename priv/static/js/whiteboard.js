@@ -42,7 +42,7 @@ window.requestAnimFrame = function(){
 
     // initialize some of our state
     this.penWidth = 4;
-    this.penColor = "FF0000";
+    this.penColor = "#FF0000";
 
     // local state of the pen
     // (used for tracking the difference between mousedrag and mousemove)
@@ -327,7 +327,7 @@ window.requestAnimFrame = function(){
       userEle.style.backgroundColor = "#" + message.penColor;
     }
 
-    ctx.fillStyle = "#" + message.penColor;
+    ctx.fillStyle = message.penColor;
     // ctx.fillRect( message.x, message.y, 2, 2 );
 
     ctx.beginPath();
@@ -335,7 +335,7 @@ window.requestAnimFrame = function(){
       ctx.moveTo(last.x, last.y);
       ctx.lineTo(message.x, message.y);
       ctx.lineWidth = message.penWidth;
-      ctx.strokeStyle = "#" + message.penColor;
+      ctx.strokeStyle = message.penColor;
       ctx.stroke();
     }
 

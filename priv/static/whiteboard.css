@@ -21,6 +21,19 @@ canvas#whiteboard {
   border-bottom-right-radius: 10px;
 }
 
+#pen-colors {
+  margin: 0;
+  width: 90px;
+}
+
+.color {
+  list-style: none;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
 #user-list {
   margin: 0;
   padding: 0;

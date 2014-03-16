@@ -40,6 +40,38 @@
       removeUser(userInfo);
     });
 
+  var colorsEle = document.getElementById('pen-colors'),
+      c,
+      colors = [
+        '#FF0000', //red
+        '#00FF00',
+        '#0000FF',
+        '#FFFF00',
+        '#00FFFF',
+        '#FF00FF',
+        '#FFFFFF',
+        '#000000'
+      ];
+
+  for ( c in colors ) {
+    c = colors[c];
+    ele = document.createElement('li');
+
+    ele.className = 'color';
+    ele.setAttribute('data-color', c);
+    ele.style.backgroundColor = c;
+    ele.addEventListener('click', setColor.bind(ele));
+
+    colorsEle.appendChild(ele);
+  }
+
+  function setColor() {
+    var color = this.getAttribute('data-color');
+
+    window.whiteboard.messageBus.broadcast( 'set_pen_color', color);
+    document.getElementById('pen-color-input').value = color;
+  }
+
   function clearUsers() {
     window.userList.innerHTML = '';
   }
