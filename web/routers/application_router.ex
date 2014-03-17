@@ -5,7 +5,7 @@ defmodule ApplicationRouter do
     # Pick which parts of the request you want to fetch
     # You can comment the line below if you don't need
     # any of them or move them to a forwarded router
-    conn.fetch([:cookies, :params])
+    conn.fetch([:cookies, :params, :session])
   end
 
   # It is common to break your Dynamo into many
@@ -13,8 +13,21 @@ defmodule ApplicationRouter do
   # forward "/posts", to: PostsRouter
 
   get "/" do
-    conn = conn.assign(:title, "Welcome to Dynamo!")
+    authenticate_user conn
+
     render conn, "index.html"
+  end
+
+  get "/sign-up" do
+    IO.puts "getting new user"
+
+    render conn, "sign-up.html"
+  end
+
+  post "/sign-up" do
+    IO.puts "signing up #{ conn.params["email"] }"
+
+    redirect conn, to: "/welcome"
   end
 
   post "/whiteboards" do
@@ -45,6 +58,12 @@ defmodule ApplicationRouter do
               |> Enum.join("\n")
 
     conn.resp 200, list
+  end
+
+  defp authenticate_user(conn) do
+    session = get_session(conn)
+
+    IO.inspect session
   end
 
 end

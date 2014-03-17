@@ -15,7 +15,12 @@ config :dynamo,
 
   # Show a nice debugging exception page
   # in development
-  exceptions_handler: Exceptions.Debug
+  exceptions_handler: Exceptions.Debug,
+
+  session_store: Session.CookieStore,
+  session_options:
+    [ key: "whiteboard_session",
+      secret: "tLcmyOeT0TgDox1Ki8VxwDBZvqhEWXYk4zFBpruA1vThjWaHjqdtavWVr4Il75/Z"]
 
 # Run on port 4000 for development
 # config :server, port: 4000
