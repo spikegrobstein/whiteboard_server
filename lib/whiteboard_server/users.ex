@@ -28,8 +28,8 @@ defmodule WhiteboardServer.Users do
     { :reply, nil, client }
   end
 
-  def handle_call( { :authenticate, email, password }, _from, client ) do
-    { :reply, nil, client }
+  def handle_call( { :authenticate, { email, password } }, _from, client ) do
+    { :reply, authenticate(client, email, password), client }
   end
 
   def handle_call( { :boards_for_user, user_id }, _from, client ) do
@@ -58,6 +58,8 @@ defmodule WhiteboardServer.Users do
         'salt'
       ]
     )
+
+    IO.puts "got back user: #{ inspect result }"
 
     case result do
       { :error, e } ->
@@ -92,6 +94,33 @@ defmodule WhiteboardServer.Users do
       { :ok, _columns, [{ email, first, last }]  } ->
         { :ok, [email: email, first: first, last: last] }
     end
+  end
+
+  defp authenticate( client, email, password ) do
+    sql = '''
+      select id from users where email = $1 and password_hash = md5( $2 || password_salt )
+    '''
+
+    result = :pgsql.equery(
+      client,
+      sql,
+      [
+        to_char_list(email),
+        to_char_list(password)
+      ]
+    )
+
+    IO.puts "User found: #{ inspect result }"
+
+    case result do
+      { :error, _ } ->
+        { :error }
+      { :ok, _columns, [] } ->
+        { :error }
+      { :ok, _columns, [{user_id}] } ->
+        { :ok, user_id }
+    end
+
   end
 
 end
