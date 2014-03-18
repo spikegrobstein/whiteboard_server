@@ -2,6 +2,8 @@ defmodule ApplicationRouter do
   use Dynamo.Router
 
   prepare do
+    conn = conn.assign(:layout, "public")
+
     # Pick which parts of the request you want to fetch
     # You can comment the line below if you don't need
     # any of them or move them to a forwarded router
