@@ -69,6 +69,12 @@ defmodule ApplicationRouter do
 
   end
 
+  get "/logout" do
+    conn = delete_session( conn, :user_id )
+
+    redirect conn, to: "/"
+  end
+
   get "/home" do
     user_id = get_session(conn, :user_id)
     result = :gen_server.call( :users, { :find, user_id } )
@@ -83,11 +89,6 @@ defmodule ApplicationRouter do
     end
   end
 
-  get "/logout" do
-    conn = delete_session( conn, :user_id )
-
-    redirect conn, to: "/"
-  end
 
   post "/whiteboards" do
 
