@@ -50,6 +50,25 @@ defmodule ApplicationRouter do
 
   end
 
+  get "/login" do
+    render conn, "login.html"
+  end
+
+  post "/login" do
+    email = conn.params["email"]
+    password = conn.params["password"]
+  
+    case :gen_server.call( :users, { :authenticate, { email, password } } ) do
+      { :error } ->
+        conn = put_session(conn, :flash, "Incorrect login credentials.")
+        redirect conn, to: "/login"
+      { :ok, user_id } ->
+        conn = put_session(conn, :user_id, user_id)
+        redirect conn, to: "/home"
+    end
+
+  end
+
   get "/home" do
     user_id = get_session(conn, :user_id)
     result = :gen_server.call( :users, { :find, user_id } )
