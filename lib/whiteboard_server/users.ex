@@ -96,6 +96,10 @@ defmodule WhiteboardServer.Users do
     end
   end
 
+  # given an email address and a password
+  # attempt to authenticate against the database
+  # return { :error } if failed
+  # return { :ok, user_id } if successful
   defp authenticate( client, email, password ) do
     sql = '''
       select id from users where email = $1 and password_hash = md5( $2 || password_salt )
