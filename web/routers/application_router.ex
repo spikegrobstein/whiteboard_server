@@ -78,6 +78,7 @@ defmodule ApplicationRouter do
   end
 
   get "/home" do
+    conn = conn.assign(:layout, 'logged-in')
     user_id = get_session(conn, :user_id)
     result = :gen_server.call( :users, { :find, user_id } )
 
