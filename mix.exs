@@ -19,6 +19,7 @@ defmodule WhiteboardServer.Mixfile do
   defp deps do
     [ { :cowboy, github: "extend/cowboy" },
       { :derp, github: 'meh/derp' },
+      { :epgsql, github: "wg/epgsql", tag: "1.4" },
       { :json,   github: "cblage/elixir-json", tag: "v0.2.7" },
       { :dynamo, github: "elixir-lang/dynamo", tag: 'elixir-0.12.2' } ]
   end

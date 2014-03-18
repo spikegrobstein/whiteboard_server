@@ -2,6 +2,7 @@
   "cowlib": {:git, "git://github.com/extend/cowlib.git", "0d4ece08a7cce90a07cf33d4edad29bc324c7d90", [ref: "0.5.1"]},
   "derp": {:git, "git://github.com/meh/derp.git", "7ed055d860292cb590d6505f44876c0311eef546", []},
   "dynamo": {:git, "git://github.com/elixir-lang/dynamo.git", "3141f404395d43f71e616c5c623a163602119da7", [tag: 'elixir-0.12.2']},
+  "epgsql": {:git, "git://github.com/wg/epgsql.git", "6dd2d2638fee7cb5fe3f81f1293b2b96ef2c5d82", [tag: "1.4"]},
   "hackney": {:git, "git://github.com/benoitc/hackney.git", "7f2a0b5996313d930277786e7ff5d538e9346547", [tag: "0.10.1"]},
   "hackney_lib": {:git, "https://github.com/benoitc/hackney_lib.git", "eecdb481f1d38bfb194896bffdf9bdcdd967ae96", [tag: "0.2.2"]},
   "json": {:git, "git://github.com/cblage/elixir-json.git", "a16a82805771b99fab5b567eb3678bca1dce424e", [tag: "v0.2.7"]},
