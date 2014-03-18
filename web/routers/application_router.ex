@@ -21,9 +21,11 @@ defmodule ApplicationRouter do
   # forward "/posts", to: PostsRouter
 
   get "/" do
-    authenticate_user conn
-
-    render conn, "index.html"
+    if logged_in?(conn) do
+      redirect conn, to: "/home"
+    else
+      render conn, "index.html"
+    end
   end
 
   get "/sign-up" do
@@ -126,4 +128,7 @@ defmodule ApplicationRouter do
     IO.inspect session
   end
 
+  defp logged_in?(conn) do
+    ! nil? get_session(conn, :user_id)
+  end
 end
