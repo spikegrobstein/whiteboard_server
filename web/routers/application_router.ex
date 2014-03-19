@@ -80,21 +80,22 @@ defmodule ApplicationRouter do
 
   get "/home" do
     conn = conn.assign(:layout, 'logged-in')
-    user_id = get_session(conn, :user_id)
-    result = User.find( user_id )
+    conn = require_authentication! conn
 
-    case result do
-      { :error } ->
-        conn = put_session( conn, :flash, "You need to be logged in to do that")
-        redirect conn, to: "/sign-up"
-      { :ok, user } ->
-        conn = conn.assign( :user, user )
-        render conn, "home.html"
-    end
+    conn = conn.assign( :boards, [] )
+
+    render conn, "home.html"
   end
 
-
   post "/whiteboards" do
+    conn = require_authentication!(conn)
+
+    :gen_server.call( :board_store, { :create, conn.params["name"] } )
+
+    redirect conn, to: "/home"
+  end
+
+  post "/whiteboards.old" do
 
     board_name = conn.params["board-name"]
     nick = conn.params["user"]
@@ -128,6 +129,20 @@ defmodule ApplicationRouter do
     session = get_session(conn)
 
     IO.inspect session
+  end
+
+  defp require_authentication!(conn) do
+    user_id = get_session(conn, :user_id)
+
+    result = User.find( user_id )
+
+    case result do
+      { :error } ->
+        conn = put_session( conn, :flash, "You need to be logged in to do that")
+        redirect! conn, to: "/login"
+      { :ok, user } ->
+        conn = conn.assign( :user, user )
+    end
   end
 
   defp logged_in?(conn) do
