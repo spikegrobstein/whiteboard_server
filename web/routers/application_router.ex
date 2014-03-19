@@ -85,15 +85,30 @@ defmodule ApplicationRouter do
     conn = conn.assign(:layout, 'logged-in')
     conn = require_authentication! conn
 
-    conn = conn.assign( :boards, [] )
+    user = current_user(conn)
+    whiteboards = User.whiteboards( user[:id] )
+
+    conn = conn.assign( :whiteboards, whiteboards  )
 
     render conn, "home.html"
   end
 
   post "/whiteboards" do
     conn = require_authentication!(conn)
+    user = current_user(conn)
 
-    :gen_server.call( :board_store, { :create, conn.params["name"] } )
+    board_name = conn.params["name"]
+
+    # ghetto validation
+    if String.length(board_name) == 0 do
+      conn = put_session(conn, :flash, "Board name must be filled out!")
+      redirect! conn, to: "/home"
+    end
+
+    # insert a new whiteboard
+    whiteboard = User.create_whiteboard( user[:id], conn.params["name"] )
+
+    IO.puts "Created new whiteboard for user #{ user[:email] } -> #{ inspect whiteboard }"
 
     redirect conn, to: "/home"
   end
@@ -146,6 +161,10 @@ defmodule ApplicationRouter do
       { :ok, user } ->
         conn = conn.assign( :user, user )
     end
+  end
+
+  defp current_user(conn) do
+    conn.assigns[:user]
   end
 
   defp logged_in?(conn) do

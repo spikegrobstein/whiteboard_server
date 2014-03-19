@@ -54,7 +54,7 @@ defmodule WhiteboardServer.User do
 
   def find( user_id ) do
     sql = '''
-      select email, first, last from users where id = $1
+      select id, email, first, last from users where id = $1
     '''
 
     result = query( sql, [ user_id ] )
@@ -62,8 +62,8 @@ defmodule WhiteboardServer.User do
     case result do
       { :error, _ } ->
         { :error }
-      { :ok, _columns, [{ email, first, last }]  } ->
-        { :ok, [email: email, first: first, last: last] }
+      { :ok, _columns, [{ id, email, first, last }]  } ->
+        { :ok, [id: id, email: email, first: first, last: last] }
     end
   end
 
@@ -77,9 +77,59 @@ defmodule WhiteboardServer.User do
     case result do
       { :error, _ } ->
         { :error }
-      { :ok, _columns, [{ email, first, last }]  } ->
-        { :ok, [email: email, first: first, last: last] }
+      { :ok, _columns, [{ id, email, first, last }]  } ->
+        { :ok, [id: id, email: email, first: first, last: last] }
     end
+  end
+
+  def whiteboards( user_id ) do
+    sql = '''
+      select name, key from whiteboards where user_id = $1
+    '''
+
+    result = query( sql, [ user_id ] )
+
+    case result do
+      { :error, error } ->
+        IO.puts "Error fetching whiteboards: #{ inspect error }"
+        { :error }
+      { :ok, _columns, whiteboard_list } ->
+        Enum.map whiteboard_list, fn({name, key}) ->
+          [ name: name, key: key ]
+        end
+    end
+  end
+
+  def create_whiteboard( user_id, name ) do
+    sql = '''
+      insert into whiteboards
+      (
+        created_at,
+        user_id,
+        name,
+        key
+      )
+      values
+      (
+        now(),
+        $1,
+        $2,
+        md5( $3 || $4 || now() )
+      )
+      returning key
+    '''
+
+    result = query( sql, [ user_id, name, user_id, name ] )
+
+    case result do
+      { :error, error } ->
+        IO.puts "Error creating whiteboard: #{ inspect error }"
+        { :error }
+      { :ok, 1, _columns, [ {key} ] } ->
+        :gen_server.call( :board_store, { :create, key } )
+        { :ok, key }
+    end
+
   end
 
   def authenticate( email, password ) do

@@ -1,21 +1,21 @@
 defmodule WhiteboardServer.Board do
   use GenServer.Behaviour
 
-  def start_link( name ) do
-    :gen_server.start_link(__MODULE__, name, [])
+  def start_link( key ) do
+    :gen_server.start_link(__MODULE__, key, [])
   end
 
   # the state of a board is a tuple containing:
   # {
-  #   name,
+  #   key,
   #   counter,
   #   clients,
   #   data
   # }
 
-  def init( name ) do
-    IO.puts "created board with #{ name } (#{ inspect self })"
-    { :ok, { name, 0, [], [] } }
+  def init( key ) do
+    IO.puts "created board with #{ key } (#{ inspect self })"
+    { :ok, { key, 0, [], [] } }
   end
 
   ## event stuff
@@ -24,7 +24,7 @@ defmodule WhiteboardServer.Board do
 
     route it to the correct private function
   """
-  def handle_cast( { :ingest_packet, pid, { event, payload } }, { name, counter, clients, data } ) do
+  def handle_cast( { :ingest_packet, pid, { event, payload } }, { key, counter, clients, data } ) do
     case event do
       "draw" ->
         # they sent a draw event, let's process it
@@ -49,7 +49,7 @@ defmodule WhiteboardServer.Board do
         send_unknown_packet_error( pid, { event, payload } )
     end
 
-    { :noreply, { name, counter, clients, data } }
+    { :noreply, { key, counter, clients, data } }
   end
 
   ## client stuff:
@@ -58,34 +58,34 @@ defmodule WhiteboardServer.Board do
     add the given user to the user list
     broadcast to everyone that this user joined
   """
-  def handle_cast( { :add_user, { pid, nick } }, { name, counter, clients, data } ) do
+  def handle_cast( { :add_user, { pid, nick } }, { key, counter, clients, data } ) do
     IO.puts "add user: #{ inspect pid } - #{ nick }"
     broadcast clients, { "user_join", {}, { inspect(pid), nick } }
 
     clients = add_client( clients, { pid, nick } )
 
-    { :noreply, { name, counter, clients, data } }
+    { :noreply, { key, counter, clients, data } }
   end
 
   @doc """
     the given user has left
     broadcast to everyone that they left
   """
-  def handle_cast( { :del_user, pid }, { name, counter, clients, data } ) do
+  def handle_cast( { :del_user, pid }, { key, counter, clients, data } ) do
     broadcast clients, { "user_leave", {}, { inspect(pid) } }
 
     clients = del_client( clients, pid )
 
-    { :noreply, { name, counter, clients, data } }
+    { :noreply, { key, counter, clients, data } }
   end
 
   @doc """
     send back info about this whiteboard
   """
   def handle_call( :hello, _from, state ) do
-    { name, counter, clients, _ } = state
+    { key, counter, clients, _ } = state
 
-    { :reply, { name, counter, clients }, state }
+    { :reply, { key, counter, clients }, state }
   end
 
   @doc """

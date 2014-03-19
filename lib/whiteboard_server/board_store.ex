@@ -9,18 +9,18 @@ defmodule WhiteboardServer.BoardStore do
     { :ok, whiteboards }
   end
 
-  def handle_call( { :create, name }, _from, whiteboards) do
-    [new|whiteboards] = create( whiteboards, name )
+  def handle_call( { :create, key }, _from, whiteboards) do
+    [new|whiteboards] = create( whiteboards, key )
 
     { :reply, new, [new|whiteboards] }
   end
 
-  def handle_call( { :get_by_name, name }, _from, whiteboards ) do
-    { :reply, get_by_name( whiteboards, name ), whiteboards }
+  def handle_call( { :get_by_key, key }, _from, whiteboards ) do
+    { :reply, get_by_key( whiteboards, key ), whiteboards }
   end
 
-  def handle_call( { :create_or_get_by_name, name }, _from, whiteboards ) do
-    [new|whiteboards] = create_or_get_by_name( whiteboards, name )
+  def handle_call( { :create_or_get_by_key, key }, _from, whiteboards ) do
+    [new|whiteboards] = create_or_get_by_key( whiteboards, key )
     { :reply, new, [new|whiteboards] }
   end
 
@@ -28,40 +28,40 @@ defmodule WhiteboardServer.BoardStore do
     { :reply, whiteboards, whiteboards }
   end
 
-  def handle_cast( { :destroy, name }, whiteboards ) do
-    { :noreply, destroy( whiteboards, name ) }
+  def handle_cast( { :destroy, key }, whiteboards ) do
+    { :noreply, destroy( whiteboards, key ) }
   end
 
   # create
-  # get_by_name
+  # get_by_key
   # destroy
 
-  # creates new whiteboard with given name
+  # creates new whiteboard with given key
   # returns list of whiteboards and whiteboard.
-  defp create( whiteboards, name ) do
-    { :ok, board } = :gen_server.start_link(WhiteboardServer.Board, name, [])
-    [ { name, board } | whiteboards ]
+  defp create( whiteboards, key ) do
+    { :ok, board } = :gen_server.start_link(WhiteboardServer.Board, key, [])
+    [ { key, board } | whiteboards ]
   end
 
-  defp get_by_name( whiteboards, target_name ) do
-    Enum.find whiteboards, fn({ name, _board }) ->
-      target_name == name
+  defp get_by_key( whiteboards, target_key ) do
+    Enum.find whiteboards, fn({ key, _board }) ->
+      target_key == key
     end
   end
 
-  defp create_or_get_by_name( whiteboards, name ) do
-    whiteboard = get_by_name( whiteboards, name )
+  defp create_or_get_by_key( whiteboards, key ) do
+    whiteboard = get_by_key( whiteboards, key )
 
     if whiteboard == nil do
-      [whiteboard|_tail] = create( whiteboards, name )
+      [whiteboard|_tail] = create( whiteboards, key )
     end
 
     [whiteboard|whiteboards]
   end
 
-  defp destroy( whiteboards, target_name ) do
-    Enum.reject whiteboards, fn({ name, _, _, _ }) ->
-      target_name == name
+  defp destroy( whiteboards, target_key ) do
+    Enum.reject whiteboards, fn({ key, _, _, _ }) ->
+      target_key == key
     end
   end
 end
