@@ -65,6 +65,9 @@ defmodule ApplicationRouter do
       { :error } ->
         conn = put_session(conn, :flash, "Incorrect login credentials.")
         redirect conn, to: "/login"
+      { :not_found } ->
+        conn = put_session(conn, :flash, "Incorrect login credentials.")
+        redirect conn, to: "/login"
       { :ok, user_id } ->
         conn = put_session(conn, :user_id, user_id)
         redirect conn, to: "/home"
