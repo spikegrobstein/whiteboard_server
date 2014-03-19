@@ -1,3 +1,24 @@
-<h2>Welcome</h2>
+<h2>
+  Welcome,
+  <%= if String.length(@user[:first]) > 0 do %>
+    <%= @user[:first] %>!
+  <% else %>
+    <%= @user[:email] %>!
+  <% end %>
+ </h2>
 
-Hello, <%= @user[:email] %>
+<div class="row">
+  <div class="col-sm-4">
+    <h4>Boards</h4>
+
+    boards.
+  </div>
+
+  <div class="col-sm-4">
+    <h4>Create Board</h4>
+
+    <%= render "create_board_form.html" %>
+
+  </div>
+</div>
+
