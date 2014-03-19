@@ -48,6 +48,10 @@ defmodule WhiteboardServer.User do
     end
   end
 
+  def find( nil ) do
+    { :error }
+  end
+
   def find( user_id ) do
     sql = '''
       select email, first, last from users where id = $1
