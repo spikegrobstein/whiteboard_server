@@ -4,6 +4,20 @@
 
 <form method="post" action="/sign-up" role="form" class="form-horizontal">
   <div class="form-group">
+    <label class="col-sm-2 control-label">First:</label>
+    <div class="col-sm-10">
+      <input class="form-control" type="text" name="first-name" value="" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-sm-2 control-label">Last:</label>
+    <div class="col-sm-10">
+      <input class="form-control" type="text" name="last-name" value="" />
+    </div>
+  </div>
+
+  <div class="form-group">
     <label class="col-sm-2 control-label">Email:</label>
     <div class="col-sm-10">
       <input class="form-control" type="text" name="email" value="" />

@@ -1,5 +1,6 @@
 defmodule ApplicationRouter do
   use Dynamo.Router
+  require WhiteboardServer.User, as: User
 
   prepare do
     conn = conn.assign(:layout, "public")
@@ -40,7 +41,7 @@ defmodule ApplicationRouter do
       |> HashDict.put(:first, conn.params["first-name"])
       |> HashDict.put(:last, conn.params["last-name"])
 
-    case :gen_server.call( :users, { :create, user } ) do
+    case User.create(user) do
       { :error } ->
         conn = put_session(conn, :flash, "Error when inserting user.")
         redirect conn, to: "/sign-up"
@@ -59,8 +60,8 @@ defmodule ApplicationRouter do
   post "/login" do
     email = conn.params["email"]
     password = conn.params["password"]
-  
-    case :gen_server.call( :users, { :authenticate, { email, password } } ) do
+
+    case User.authenticate( email, password ) do
       { :error } ->
         conn = put_session(conn, :flash, "Incorrect login credentials.")
         redirect conn, to: "/login"
@@ -80,7 +81,7 @@ defmodule ApplicationRouter do
   get "/home" do
     conn = conn.assign(:layout, 'logged-in')
     user_id = get_session(conn, :user_id)
-    result = :gen_server.call( :users, { :find, user_id } )
+    result = User.find( user_id )
 
     case result do
       { :error } ->
