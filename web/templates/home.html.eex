@@ -35,7 +35,11 @@
     <% else %>
       <ul class="list-unstyled">
       <%= Enum.map @whiteboards, fn(whiteboard) -> %>
-        <li><%= whiteboard[:name] %></li>
+        <li>
+          <a href="/whiteboards/<%= whiteboard[:key] %>">
+            <%= whiteboard[:name] %>
+          </a>
+        </li>
       <% end %>
       </ul>
     <% end %>
