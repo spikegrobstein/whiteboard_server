@@ -127,6 +127,13 @@ defmodule ApplicationRouter do
     redirect conn, to: "/static/index.html?user=#{ nick }&board_name=#{ board_name }"
   end
 
+  get "/whiteboards/:key" do
+    conn = require_authentication!(conn)
+    user = current_user(conn)
+
+    redirect conn, to: "/static/index.html?user=#{ user[:email] }&board_key=#{ conn.params[:key] }"
+  end
+
   post "/whiteboards/:name" do
     :gen_server.call( :board_store, { :create, conn.params["name"] } )
 

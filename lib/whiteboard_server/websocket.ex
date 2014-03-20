@@ -14,10 +14,10 @@ defmodule WhiteboardServer.Websocket do
 
     # read the user field from URL
     { user, _ } = :cowboy_req.qs_val("user", req, "anon")
-    { board_name, _ } = :cowboy_req.qs_val("board_name", req)
+    { board_key, _ } = :cowboy_req.qs_val("board_key", req)
 
     # find the whiteboard
-    { _, whiteboard } = :gen_server.call( :board_store, { :create_or_get_by_name, board_name } )
+    { _, whiteboard } = :gen_server.call( :board_store, { :create_or_get_by_key, board_key } )
 
     IO.puts "started whiteboard #{ inspect whiteboard }"
 
@@ -69,13 +69,13 @@ defmodule WhiteboardServer.Websocket do
       "hello" ->
         IO.puts "Received hello."
 
-        { name, counter, user_list } = :gen_server.call( whiteboard, :hello )
+        { key, counter, user_list } = :gen_server.call( whiteboard, :hello )
 
         user_list = Enum.map( user_list, fn({ pid, nick }) ->
           [ userId: inspect(pid), nick: nick ]
         end)
 
-        send self, { :packet, { "hello", {}, [ name: name, userList: user_list, sequence: counter ] } }
+        send self, { :packet, { "hello", {}, [ key: key, userList: user_list, sequence: counter ] } }
       _ ->
         :gen_server.cast whiteboard, { :ingest_packet, self, { event, payload } }
     end
