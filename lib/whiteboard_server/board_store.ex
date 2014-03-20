@@ -6,6 +6,9 @@ defmodule WhiteboardServer.BoardStore do
   end
 
   def init( whiteboards ) do
+    # start up, deactivate all of the boards
+    deactivate_all_boards
+
     { :ok, whiteboards }
   end
 
@@ -63,5 +66,13 @@ defmodule WhiteboardServer.BoardStore do
     Enum.reject whiteboards, fn({ key, _, _, _ }) ->
       target_key == key
     end
+  end
+
+  defp deactivate_all_boards do
+    sql = '''
+      update whiteboards set active = false where active
+    '''
+
+    :gen_server.call( :database, { :equery, sql, [] })
   end
 end

@@ -84,7 +84,7 @@ defmodule WhiteboardServer.User do
 
   def whiteboards( user_id ) do
     sql = '''
-      select name, key from whiteboards where user_id = $1
+      select name, key from whiteboards where user_id = $1 and active
     '''
 
     result = query( sql, [ user_id ] )
