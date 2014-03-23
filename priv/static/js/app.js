@@ -1,5 +1,30 @@
 (function( window, document ) {
-  window.whiteboard = new Whiteboard( 'ws://' + window.location.host + '/websocket' + window.location.search, document.getElementById('whiteboard') );
+
+  // return the websocket URL to use
+  function whiteboardWebsocketURL() {
+    var pathItems = window.location.pathname.split('/'),
+        boardKey = null,
+        username = null,
+        data = null,
+        xhr = new XMLHttpRequest();
+
+    pathItems.shift();
+
+    boardKey = pathItems[1];
+
+    xhr.open( 'GET', '/api/whoami', false );
+    xhr.send( null );
+
+    // FIXME: needs some kind of error detection
+    data = xhr.response;
+    data = JSON.parse( data );
+
+    username = data.email;
+
+    return "ws://" + window.location.host + '/websocket?user=' + username + '&board_key=' + boardKey;
+  }
+
+  window.whiteboard = new Whiteboard( whiteboardWebsocketURL(), document.getElementById('whiteboard') );
   window.userList = document.getElementById('user-list');
 
   window.whiteboard.messageBus
