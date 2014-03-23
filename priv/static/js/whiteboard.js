@@ -169,15 +169,16 @@ window.requestAnimFrame = function(){
       // where on the source image to draw from
       this.scrollX < 0 ? 0 : this.scrollX, // ios can't draw negative
       this.scrollY < 0 ? 0 : this.scrollY,
-      (this.fullsizeWidth + this.scrollX >= this.width) ? this.width - this.scrollX : this.fullsizeWidth,
-      (this.fullsizeHeight + this.scrollY >= this.height) ? this.height - this.scrollY : this.fullsizeHeight,
+      (this.width + this.scrollX >= this.width) ? this.width - this.scrollX : this.fullsizeWidth,
+      (this.height + this.scrollY >= this.height) ? this.height - this.scrollY : this.fullsizeHeight,
 
       // where on the local canvas to draw to
       this.scrollX < 0 ? -(this.scrollX) : 0,
       this.scrollY < 0 ? -(this.scrollY) : 0,
-      (this.fullsizeWidth + this.scrollX >= this.width) ? this.whiteboard.width - (this.scrollX * this.zoomRatio) : this.whiteboard.width,
-      (this.fullsizeHeight + this.scrollY >= this.height) ? this.whiteboard.height - (this.scrollY * this.zoomRatio) : this.whiteboard.height
+      (this.width + this.scrollX >= this.width) ? this.width - this.scrollX : this.whiteboard.width,
+      (this.height + this.scrollY >= this.height) ? this.height - this.scrollY : this.whiteboard.height
     );
+
   };
 
   // Utility Functions
