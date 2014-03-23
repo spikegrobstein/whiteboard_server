@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Whiteboard</title>
+
+  <link rel="stylesheet" type="text/css" href="/static/whiteboard.css" />
+</head>
+<body>
+
+  <canvas id="whiteboard" width="500" height="500">
+    no support
+  </canvas>
+
+  <div id="controls">
+    <div id="message"></div>
+    <button id="hideshow">&gt;</button>
+    <form id="form" style="display:none">
+      <div id="pen-colors"></div>
+      <div>
+        <label>Color: </label>
+        <input type="text" id="pen-color-input" name="penColor" value="#FF0000" size="6" />
+      </div>
+
+      <div>
+        <label>Width:</label>
+        <input type="text" id="pen-width-input" name="penWidth" value="4" size="6" />
+      </div>
+
+      <h3>Users</h3>
+      <ul id="user-list"></ul>
+    </form>
+
+  </div>
+
+  <div style="display: none">
+    <img id="undefined-background" src="/static/img/undefined-background.png" alt="undefined" />
+  </div>
+
+  <script>
+    var imports = [
+          'message_bus',
+          'whiteboard_client',
+          'whiteboard',
+          'app'
+        ],
+        i = 0;
+
+    // import everything
+    for ( i in imports ) {
+      i = imports[i] + '.js';
+
+      document.write('<script src="/static/js/' + i + '"><\/script>');
+    }
+  </script>
+</body>
+</html>
