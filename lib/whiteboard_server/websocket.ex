@@ -17,7 +17,7 @@ defmodule WhiteboardServer.Websocket do
     { board_key, _ } = :cowboy_req.qs_val("board_key", req)
 
     # find the whiteboard
-    { _, whiteboard } = :gen_server.call( :board_store, { :create_or_get_by_key, board_key } )
+    { _, whiteboard } = :gen_server.call( :board_store, { :get_by_key, board_key } )
 
     IO.puts "started whiteboard #{ inspect whiteboard }"
 
