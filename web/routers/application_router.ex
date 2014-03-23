@@ -131,7 +131,27 @@ defmodule ApplicationRouter do
     conn = require_authentication!(conn)
     user = current_user(conn)
 
-    redirect conn, to: "/static/index.html?user=#{ user[:email] }&board_key=#{ conn.params[:key] }"
+    conn = conn.assign(:layout, nil)
+
+    render conn, "whiteboard.html"
+    # redirect conn, to: "/static/index.html?user=#{ user[:email] }&board_key=#{ conn.params[:key] }"
+  end
+
+  # return a JSON hash with info about this user.
+  get "/api/whoami" do
+    conn = require_authentication!(conn)
+    user = current_user(conn)
+
+    response = [
+      email: user[:email],
+      id: user[:id],
+      name: Enum.join( [user[:first], user[:last]], " ")
+    ]
+
+    { :ok, json } = JSON.encode( response )
+
+    conn = conn.put_resp_header("Content-Type", "application/json")
+    conn.resp_body(json)
   end
 
   post "/whiteboards/:name" do
