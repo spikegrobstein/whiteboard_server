@@ -77,3 +77,8 @@ body {
     border-bottom: 0;
   }
 }
+
+.site-title a {
+  color: black;
+}
+
