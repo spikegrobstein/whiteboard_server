@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Whiteboard</title>
+  <meta name="viewport" content="minimal-ui">
 
   <link rel="stylesheet" type="text/css" href="/static/whiteboard.css" />
 </head>
