@@ -258,6 +258,11 @@ window.requestAnimFrame = function(){
     this.scrollX = Math.ceil( x );
     this.scrollY = Math.ceil( y );
 
+    if ( this.scrollX < -200 ) { this.scrollX = -200 }
+    if ( this.scrollY < -200 ) { this.scrollY = -200 }
+    if ( this.scrollX > this.width - 400 ) { this.scrollX = this.width - 400 }
+    if ( this.scrollY > this.height - 400 ) { this.scrollY = this.height - 400 }
+
     this.dirtyBuffer = true;
   };
 
