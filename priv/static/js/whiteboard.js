@@ -97,7 +97,7 @@ window.requestAnimFrame = function(){
   };
 
   Whiteboard.prototype.scaleImage = function( imageStruct, zoomRatio ) {
-    var image = this.createImage( imageStruct.width * zoomRatio, imageStruct.height * zoomRatio );
+    var image = this.createImage( Math.round(imageStruct.width * zoomRatio), Math.round(imageStruct.height * zoomRatio) );
 
     image.ctx.drawImage(
       imageStruct.image,
