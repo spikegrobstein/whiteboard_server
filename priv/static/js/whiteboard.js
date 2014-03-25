@@ -354,7 +354,7 @@ window.requestAnimFrame = function(){
 
     this.penStatuses[message.userId] = { x: message.x, y: message.y };
 
-    this.updatescaledImage();
+    this.updateScaledImage();
 
     this.dirtyBuffer = true;
   };
