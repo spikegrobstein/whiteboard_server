@@ -12,6 +12,7 @@ window.requestAnimFrame = function(){
 }();
 
 (function( window, document) {
+
   var Whiteboard = function( host, element ) {
     var whiteboardDimensions;
 
@@ -20,25 +21,24 @@ window.requestAnimFrame = function(){
 
     this.client = new WhiteboardClient( host, this.messageBus );
 
-    // sizing ( 1080 HDTV size )
-    // this has to be < 3MP to work properly on iOS devices
-    this.width = 1920;
-    this.height = 1080;
+    this.DEFAULT_WIDTH = 1920;
+    this.DEFAULT_HEIGHT = 1080;
 
-    // initialize offscreen context
-    this.image = this.createImage( this.width, this.height );
-    this.imageCtx = this.image.getContext('2d');
-    this.whiteboardCtx = this.whiteboard.getContext('2d');
-    this.pattern = this.createPattern();
-
-    // properties of the local client
+    // the zoom factor
     this.zoomRatio = 1;
 
-    // the x/y of the view's upper-left corner compared to the main image
-    // this is actual X/Y, in pixels of the source image at actual size.
-    // by default , we want to be centered.
-    this.scrollX = ( this.width / 2 ) - ( this.translateZoomFromLocalToFullsize(this.whiteboard.width) / 2 );
-    this.scrollY = ( this.height / 2 ) - ( this.translateZoomFromLocalToFullsize(this.whiteboard.height) / 2 );
+    // sizing ( 1080 HDTV size )
+    // this has to be < 3MP to work properly on iOS devices
+    this.fullsizeImage = this.createImage( this.DEFAULT_WIDTH, this.DEFAULT_HEIGHT );
+    this.updateScaledImage();
+
+    this.whiteboardCtx = this.whiteboard.getContext('2d');
+
+    this.pattern = this.createPattern();
+
+    // the scroll offsets in screen dimensions
+    this.scrollX = 0;
+    this.scrollY = 0;
 
     // initialize some of our state
     this.penWidth = 4;
@@ -78,33 +78,57 @@ window.requestAnimFrame = function(){
    return messageBus;
   };
 
+  Whiteboard.prototype.createImage = function( width, height ) {
+    var image = document.createElement('canvas'),
+        ctx = image.getContext('2d');
+
+    image.width = width;
+    image.height = height;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    return {
+      width: width,
+      height: height,
+      image: image,
+      ctx: ctx
+    };
+  };
+
+  Whiteboard.prototype.scaleImage = function( imageStruct, zoomRatio ) {
+    var image = this.createImage( imageStruct.width * zoomRatio, imageStruct.height * zoomRatio );
+
+    image.ctx.drawImage(
+      imageStruct.image,
+
+      // source
+      0,
+      0,
+      imageStruct.width,
+      imageStruct.height,
+
+      // destination
+      0,
+      0,
+      image.width,
+      image.height
+    );
+
+    return image;
+  };
+
+  Whiteboard.prototype.updateScaledImage = function() {
+    this.scaledImage = this.scaleImage( this.fullsizeImage, this.zoomRatio );
+  }
+
+
   Whiteboard.prototype.createPattern = function() {
     var patternImg = document.getElementById('undefined-background'),
         pattern = this.whiteboardCtx.createPattern( patternImg, 'repeat' );
 
     return pattern;
   };
-
-  Whiteboard.prototype.cacheFullsizeDimensions = function() {
-    var whiteboardDimensions = this.translateDimensionsFromLocalToFullsize( this.whiteboard.width, this.whiteboard.height );
-    this.fullsizeWidth = whiteboardDimensions.width;
-    this.fullsizeHeight = whiteboardDimensions.height;
-  };
-
-  // initialize the offscreen image whiteboard and return it
-  Whiteboard.prototype.createImage = function( width, height ) {
-    var buffer = document.createElement('canvas'),
-        ctx = buffer.getContext('2d');
-
-    buffer.width = width;
-    buffer.height = height;
-
-    // fill with white
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
-
-    return buffer;
-  }
 
   // resizes the onscreen canvas in the DOM to the size of the window
   Whiteboard.prototype.resizeCanvasToWindow = function() {
@@ -116,7 +140,7 @@ window.requestAnimFrame = function(){
     this.whiteboard.width = fullsizeWidth;
     this.whiteboard.height = fullsizeHeight;
 
-    this.cacheFullsizeDimensions();
+    // this.cacheFullsizeDimensions();
   };
 
   // convenience method for adding event listener to the whiteboard canvas element
@@ -164,89 +188,57 @@ window.requestAnimFrame = function(){
     this.whiteboardCtx.fillRect( 0, 0, this.whiteboard.width, this.whiteboard.height );
 
     this.whiteboardCtx.drawImage(
-      this.image,
+      this.scaledImage.image,
 
-      // where on the source image to draw from
-      this.scrollX < 0 ? 0 : this.scrollX, // ios can't draw negative
-      this.scrollY < 0 ? 0 : this.scrollY,
-      (this.width + this.scrollX >= this.width) ? this.width - this.scrollX : this.fullsizeWidth,
-      (this.height + this.scrollY >= this.height) ? this.height - this.scrollY : this.fullsizeHeight,
+      0,
+      0,
+      this.scaledImage.width,
+      this.scaledImage.height,
 
-      // where on the local canvas to draw to
-      this.scrollX < 0 ? -(this.scrollX) : 0,
-      this.scrollY < 0 ? -(this.scrollY) : 0,
-      (this.width + this.scrollX >= this.width) ? this.width - this.scrollX : this.whiteboard.width,
-      (this.height + this.scrollY >= this.height) ? this.height - this.scrollY : this.whiteboard.height
-    );
+      this.scrollX,
+      this.scrollY,
+      this.scaledImage.width,
+      this.scaledImage.height
+    )
+
+    // this.whiteboardCtx.drawImage(
+      // this.scaledImage,
+
+      // // where on the source image to draw from
+      // this.scrollX < 0 ? 0 : this.scrollX, // ios can't draw negative
+      // this.scrollY < 0 ? 0 : this.scrollY,
+      // this.fullsizeWidth,
+      // this.fullsizeHeight,
+      // // (this.width + this.scrollX >= this.width) ? this.width - this.scrollX : this.fullsizeWidth,
+      // // (this.height + this.scrollY >= this.height) ? this.height - this.scrollY : this.fullsizeHeight,
+
+      // // where on the local canvas to draw to
+      // this.scrollX < 0 ? Math.abs(this.scrollX) : 0,
+      // this.scrollY < 0 ? Math.abs(this.scrollY) : 0,
+      // this.whiteboard.width,
+      // this.whiteboard.height
+      // // this.scrollX < 0 ? -(this.scrollX) : 0,
+      // // this.scrollY < 0 ? -(this.scrollY) : 0,
+      // // (this.width + this.scrollX >= this.width) ? this.width - this.scrollX : this.whiteboard.width,
+      // // (this.height + this.scrollY >= this.height) ? this.height - this.scrollY : this.whiteboard.height
+    // );
 
   };
 
-  // Utility Functions
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-
-  Whiteboard.prototype.translateZoomFromLocalToFullsize = function( d ) {
-    return Math.round( d / this.zoomRatio );
-  };
-
-  Whiteboard.prototype.translateZoomFromFullsizeToLocal = function( d ) {
-    return Math.round( d * this.zoomRatio );
-  };
-
-  // return an object with x and y keys
-  // translates from canvas x/y to fullsize image x/y
-  // takes scrolling and zooming into account
   Whiteboard.prototype.translateFromLocalToFullsize = function( x, y ) {
     return {
-      x: this.scrollX + Math.round( x / this.zoomRatio ),
-      y: this.scrollY + Math.round( y / this.zoomRatio )
+      x: ( x - this.scrollX ) / this.zoomRatio,
+      y: ( y - this.scrollY ) / this.zoomRatio
     };
   };
-
-  Whiteboard.prototype.translateFromFullsizeToLocal = function( x, y ) {
-    return {
-      x: Math.round( (x - this.scrollX) * this.zoomRatio ),
-      y: Math.round( (y - this.scrollY) * this.zoomRatio )
-    };
-  };
-
-  // given a width and height of the viewport, get width and height in fullsize
-  Whiteboard.prototype.translateDimensionsFromLocalToFullsize = function( w, h ) {
-    return {
-      width: this.translateDimensionFromLocalToFullsize( w ),
-      height: this.translateDimensionFromLocalToFullsize( h )
-    };
-  };
-
-  Whiteboard.prototype.translateDimensionsFromFullsizeToLocal = function( w, h ) {
-    return {
-      width: this.translateDimensionFromFullsizeToLocal( w ),
-      height: this.translateDimensionFromFullsizeToLocal( h )
-    };
-  };
-
-  /*
-   * given a dimension in view scale
-   * return its value at fullsize scale.
-   */
-  Whiteboard.prototype.translateDimensionFromLocalToFullsize = function( d ) {
-    return Math.round( d / this.zoomRatio );
-  }
-
-  /*
-   * given a dimension in full scale
-   * return its value at view scale
-   */
-  Whiteboard.prototype.translateDimensionFromFullsizeToLocal = function( d ) {
-    return Math.round( d * this.zoomRatio );
-  }
 
   /*
    *  scroll deltas
    *  this uses actual image size values
    */
   Whiteboard.prototype.scroll = function( dx, dy ) {
-    this.scrollX -= dx;
-    this.scrollY -= dy;
+    this.scrollX += dx;
+    this.scrollY += dy;
 
     this.scrollTo( );
   };
@@ -258,10 +250,10 @@ window.requestAnimFrame = function(){
     this.scrollX = Math.ceil( x );
     this.scrollY = Math.ceil( y );
 
-    if ( this.scrollX < -200 ) { this.scrollX = -200 }
-    if ( this.scrollY < -200 ) { this.scrollY = -200 }
-    if ( this.scrollX > this.width - 400 ) { this.scrollX = this.width - 400 }
-    if ( this.scrollY > this.height - 400 ) { this.scrollY = this.height - 400 }
+    // if ( this.scrollX < -200 ) { this.scrollX = -200 }
+    // if ( this.scrollY < -200 ) { this.scrollY = -200 }
+    // if ( this.scrollX > this.width - 400 ) { this.scrollX = this.width - 400 }
+    // if ( this.scrollY > this.height - 400 ) { this.scrollY = this.height - 400 }
 
     this.dirtyBuffer = true;
   };
@@ -274,7 +266,7 @@ window.requestAnimFrame = function(){
     if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; } // max zoom is 2
     if ( this.zoomRatio < .25 ) { this.zoomRatio = .25; } // min zoom is .1
 
-    this.cacheFullsizeDimensions();
+    this.updateScaledImage();
 
     this.dirtyBuffer = true;
 
@@ -338,46 +330,38 @@ window.requestAnimFrame = function(){
 
   // receive pen event from server
   Whiteboard.prototype.handleUpdate = function( messageType, message ) {
-    var ctx         = this.imageCtx,
-        last        = this.penStatuses[message.userId],
-        userId      = message.userId.replace(/[^a-z0-9]/ig, ''),
-        userEle     = document.getElementById(userId);
-        onscreenCtx = this.whiteboardCtx;
 
-    // set background on this user
-    if ( userEle ) {
-      userEle.style.backgroundColor = "#" + message.penColor;
-    }
+    // draw on fullsize, then scale down.
+    var ctx = this.fullsizeImage.ctx,
+        last = this.penStatuses[message.userId];
 
-    ctx.fillStyle = message.penColor;
+    // ctx.fillStyle = message.penColor;
     // ctx.fillRect( message.x, message.y, 2, 2 );
 
     ctx.beginPath();
     if ( last ) {
       ctx.moveTo(last.x, last.y);
       ctx.lineTo(message.x, message.y);
+      ctx.lineCap = "round";
       ctx.lineWidth = message.penWidth;
       ctx.strokeStyle = message.penColor;
       ctx.stroke();
     }
 
-    ctx.arc(message.x, message.y, message.penWidth / 2, 0,2*Math.PI, false);
-    ctx.fill();
+    // cap it off
+    // ctx.arc(message.x, message.y, message.penWidth / 2, 0,2*Math.PI, false);
+    // ctx.fill();
 
     this.penStatuses[message.userId] = { x: message.x, y: message.y };
+
+    this.updatescaledImage();
 
     this.dirtyBuffer = true;
   };
 
   // receive pen-up from server
   Whiteboard.prototype.handlePenUp = function( messageType, message ) {
-    var userId = message.userId
-        userEleId = message.userId.replace(/[^a-z0-9]/ig, ''),
-        userEle = document.getElementById(userEleId);
-
-    if ( userEle ) {
-      userEle.style.backgroundColor = "transparent";
-    }
+    var userId = message.userId;
 
     delete this.penStatuses[userId];
   };
@@ -489,11 +473,9 @@ window.requestAnimFrame = function(){
     event.preventDefault();
 
     var dx = event.wheelDeltaX,
-        dy = event.wheelDeltaY,
-        scrollDx = this.translateZoomFromLocalToFullsize( dx ),
-        scrollDy = this.translateZoomFromLocalToFullsize( dy );
+        dy = event.wheelDeltaY;
 
-    this.scroll( scrollDx, scrollDy );
+    this.scroll( dx, dy );
   };
 
 
