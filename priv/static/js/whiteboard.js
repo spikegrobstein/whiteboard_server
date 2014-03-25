@@ -369,29 +369,37 @@ window.requestAnimFrame = function(){
 
   Whiteboard.prototype.handlePinchToZoom = function( touches ) {
 
-    // calculate zoomRatio by using the box formed by t1 and t2
-    // the ratio is the local size / fullsize size
-    var vt1        = { x: touches[0].clientX, y: touches[0].clientY },                  // t1, view scale
-        vt2        = { x: touches[1].clientX, y: touches[1].clientY },                  // t2, view scale
-        ft1        = this.translateFromLocalToFullsize( vt1.x, vt1.y ),                 // t1 full scale
-        ft2        = this.translateFromLocalToFullsize( vt2.x, vt2.y ),                 // t2 full scale
-        oft1       = this.zoomTouches[0],                                               // original t1, full scale
-        oft2       = this.zoomTouches[1],                                               // original t2, full scale
-        vboxWidth  = Math.abs( vt1.x - vt2.x ),                                         // width of the box at screen size
-        vboxHeight = Math.abs( vt1.y - vt2.y ),                                         // height of box at screen size
-        fboxWidth  = Math.abs( oft1.x - oft2.x ),                                       // width of original box at fullsize
-        fboxHeight = Math.abs( oft1.y - oft2.y ),                                       // height of original box at full size
-        vboxDiag   = Math.sqrt( Math.pow( vboxWidth, 2 ) + Math.pow( vboxHeight, 2 ) ), // distance between screen-size points
-        fboxDiag   = Math.sqrt( Math.pow( fboxWidth, 2 ) + Math.pow( fboxHeight, 2 ) ), // distance between original fullsize points
-        zoomRatio  = this.setZoom( vboxDiag / fboxDiag ),                               // ratio of screen size to full size (calculate zoom)
+    var t1        = { x: touches[0].clientX, y: touches[0].clientY },
+        t2        = { x: touches[1].clientX, y: touches[1].clientY },
+        dt1       = { x: t1.x - this.scrollX, y: t1.y - this.scrollY },
+        dt2       = { x: t2.x - this.scrollX, y: t2.y - this.scrollY },
 
-        // scroll values:
-        // we have original x/y on fullsize
-        // lock touchpoint 1's X from original location to that point on the screen
-        dx         = oft1.x - ft1.x,
-        dy         = oft1.y - ft1.y;
+        boxWidth  = Math.abs(t1.x - t2.x),
+        boxHeight = Math.abs(t1.y - t2.y),
+        boxDiag   = Math.sqrt( Math.pow( boxWidth, 2 ) + Math.pow( boxHeight, 2 ) ),
 
-    this.scroll( -dx, -dy );
+        ot        = this.lastPinchTouches;
+
+    this.lastPinchTouches = [ t1, t2 ];
+
+    // if there were no old touches, then just return.
+    if ( ! ot ) { return; }
+
+    var ot1           = ot[0],
+        ot2           = ot[1],
+        oldWidth      = Math.abs( ot1.x - ot2.x ),
+        oldHeight     = Math.abs( ot1.y - ot2.y ),
+        oldDiag       = Math.sqrt( Math.pow( oldWidth, 2 ) + Math.pow( oldHeight, 2 ) ),
+
+        newZoom       = this.zoomRatio * ( boxDiag / oldDiag ),
+        zoom          = this.setZoom( newZoom )
+
+        upperLeftBoxX = Math.min( t1.x, t2.x ),
+        upperLeftBoxY = Math.min( t1.y, t2.y ),
+        upperLeftOldX = Math.min( ot1.x, ot2.x ),
+        upperLeftOldY = Math.min( ot1.y, ot2.y );
+
+    this.scroll( upperLeftBoxX - upperLeftOldX, upperLeftBoxY - upperLeftOldY );
   };
 
   // interaction event handers
@@ -420,6 +428,7 @@ window.requestAnimFrame = function(){
     }
 
     if ( event.touches.length == 0 ) {
+      this.lastPinchTouches = null;
       this.sendPenUp();
     }
 
