@@ -413,7 +413,6 @@ window.requestAnimFrame = function(){
         oldDiag       = Math.sqrt( Math.pow( oldWidth, 2 ) + Math.pow( oldHeight, 2 ) ),
 
         newZoom       = this.zoomRatio * ( boxDiag / oldDiag ),
-        zoom          = this.setZoom( newZoom )
 
         upperLeftBoxX = Math.min( t1.x, t2.x ),
         upperLeftBoxY = Math.min( t1.y, t2.y ),
@@ -421,6 +420,7 @@ window.requestAnimFrame = function(){
         upperLeftOldY = Math.min( ot1.y, ot2.y );
 
     this.scroll( upperLeftBoxX - upperLeftOldX, upperLeftBoxY - upperLeftOldY );
+    this.setZoom( newZoom, dt1 );
   };
 
   // interaction event handers
