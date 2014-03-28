@@ -78,8 +78,6 @@ window.requestAnimFrame = function(){
                             this.penWidth = penWidth;
                           }.bind(this));
 
-                          // .subscribe( 'set_penColor',   this.handleSetPenColor.bind(this) )
-                          // .subscribe( 'set_penWidth',   this.handleSetPenWidth.bind(this) );
    return messageBus;
   };
 
@@ -144,8 +142,6 @@ window.requestAnimFrame = function(){
 
     this.whiteboard.width = fullsizeWidth;
     this.whiteboard.height = fullsizeHeight;
-
-    // this.cacheFullsizeDimensions();
   };
 
   // convenience method for adding event listener to the whiteboard canvas element
@@ -206,28 +202,6 @@ window.requestAnimFrame = function(){
       this.scaledImage.height
     )
 
-    // this.whiteboardCtx.drawImage(
-      // this.scaledImage,
-
-      // // where on the source image to draw from
-      // this.scrollX < 0 ? 0 : this.scrollX, // ios can't draw negative
-      // this.scrollY < 0 ? 0 : this.scrollY,
-      // this.fullsizeWidth,
-      // this.fullsizeHeight,
-      // // (this.width + this.scrollX >= this.width) ? this.width - this.scrollX : this.fullsizeWidth,
-      // // (this.height + this.scrollY >= this.height) ? this.height - this.scrollY : this.fullsizeHeight,
-
-      // // where on the local canvas to draw to
-      // this.scrollX < 0 ? Math.abs(this.scrollX) : 0,
-      // this.scrollY < 0 ? Math.abs(this.scrollY) : 0,
-      // this.whiteboard.width,
-      // this.whiteboard.height
-      // // this.scrollX < 0 ? -(this.scrollX) : 0,
-      // // this.scrollY < 0 ? -(this.scrollY) : 0,
-      // // (this.width + this.scrollX >= this.width) ? this.width - this.scrollX : this.whiteboard.width,
-      // // (this.height + this.scrollY >= this.height) ? this.height - this.scrollY : this.whiteboard.height
-    // );
-
   };
 
   Whiteboard.prototype.translateFromLocalToFullsize = function( x, y ) {
@@ -254,11 +228,6 @@ window.requestAnimFrame = function(){
 
     this.scrollX = Math.ceil( x );
     this.scrollY = Math.ceil( y );
-
-    // if ( this.scrollX < -200 ) { this.scrollX = -200 }
-    // if ( this.scrollY < -200 ) { this.scrollY = -200 }
-    // if ( this.scrollX > this.width - 400 ) { this.scrollX = this.width - 400 }
-    // if ( this.scrollY > this.height - 400 ) { this.scrollY = this.height - 400 }
 
     this.dirtyBuffer = true;
   };
@@ -358,9 +327,6 @@ window.requestAnimFrame = function(){
     var ctx = this.fullsizeImage.ctx,
         last = this.penStatuses[message.userId];
 
-    // ctx.fillStyle = message.penColor;
-    // ctx.fillRect( message.x, message.y, 2, 2 );
-
     ctx.beginPath();
     if ( last ) {
       ctx.moveTo(last.x, last.y);
@@ -370,10 +336,6 @@ window.requestAnimFrame = function(){
       ctx.strokeStyle = message.penColor;
       ctx.stroke();
     }
-
-    // cap it off
-    // ctx.arc(message.x, message.y, message.penWidth / 2, 0,2*Math.PI, false);
-    // ctx.fill();
 
     this.penStatuses[message.userId] = { x: message.x, y: message.y };
 
