@@ -27,6 +27,8 @@ window.requestAnimFrame = function(){
     this.MAX_ZOOM = 1.58;
     this.MIN_ZOOM = 0.25;
 
+    this.ZOOM_INCREMENT = 0.1; // for keyboard zoom.
+
     // the zoom factor
     this.zoomRatio = 1;
 
@@ -334,11 +336,11 @@ window.requestAnimFrame = function(){
 
     switch( zoomDirection ) {
       case 'in':
-        zoomAmount = 0.1;
+        zoomAmount = this.ZOOM_INCREMENT;
         break;
 
       case 'out':
-        zoomAmount = -0.1;
+        zoomAmount = -this.ZOOM_INCREMENT;
         break;
 
       default:
