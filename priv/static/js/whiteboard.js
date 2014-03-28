@@ -258,19 +258,52 @@ window.requestAnimFrame = function(){
     this.dirtyBuffer = true;
   };
 
-  Whiteboard.prototype.setZoom = function( newZoom ) {
-    this.zoomRatio = newZoom;
+  /*
+   * set the zoomRatio to newZoom
+   * originPoint is the center point for the zoom
+   * if it's omitted, just zoom from the center of the canvas.
+   */
+  Whiteboard.prototype.setZoom = function( newZoom, originPoint ) {
+    var scaledOrigin = { x: 0, y: 0 }, // the origin point on the scaled image
+        zoomDelta = null;              // the % difference between current zoom and the new zoom
+
+    if ( typeof originPoint === 'undefined' ) { originPoint = this.centerPoint(); }
 
     // restrict to minimum and maximum zoom levels.
-    if ( isNaN(this.zoomRatio) ) { this.zoomRatio = 1; } // fail-safe; if zoom is bad, set it to 1.0
-    if ( this.zoomRatio > 2 ) { this.zoomRatio = 2; } // max zoom is 2
-    if ( this.zoomRatio < .25 ) { this.zoomRatio = .25; } // min zoom is .1
+    if ( isNaN( newZoom ) ) { newZoom = 1; } // fail-safe; if zoom is bad, set it to 1.0
+    if ( newZoom > 2 ) { newZoom = 2; }      // max zoom is 2
+    if ( newZoom < .25 ) { newZoom = .25; }  // min zoom is .1
 
+    zoomDelta = newZoom / this.zoomRatio;
+
+    console.log("zoom: " + newZoom + '(' + zoomDelta + ')');
+
+    // translate the origin point to the point on the new image
+    scaledOrigin.x = originPoint.x * zoomDelta;
+    scaledOrigin.y = originPoint.y * zoomDelta;
+
+    this.zoomRatio = newZoom;
     this.updateScaledImage();
+
+    this.scrollX -= scaledOrigin.x - originPoint.x;
+    this.scrollY -= scaledOrigin.y - originPoint.y;
 
     this.dirtyBuffer = true;
 
     return this.zoomRatio;
+  };
+
+  /*
+   * return the center of the whiteboard in coordinates of the scaledImage
+   * returned as a {x: X, y: Y} object
+   */
+  Whiteboard.prototype.centerPoint = function() {
+    var cx = this.whiteboard.width / 2,
+        cy = this.whiteboard.height / 2,
+        ix = cx - this.scrollX,
+        iy = cy - this.scrollY;
+
+    return { x: ix, y: iy };
   };
 
   // functions for sending things to the server
@@ -296,14 +329,7 @@ window.requestAnimFrame = function(){
   // for how we handle incoming things
 
   Whiteboard.prototype.handleKeyboardZoom = function( _messageType, zoomDirection ) {
-    var zoomAmount = 0,
-        centerViewX = this.whiteboard.width / 2,
-        centerViewY = this.whiteboard.height / 2,
-        preCenterFull  = this.translateFromLocalToFullsize( centerViewX, centerViewY ), // fullsize coordinates before zoom
-        postCenterFull = null, // fullsize coordinates after zoom
-        dx = null, // scroll amount to re-center
-        dy = null; // scroll amount to re-center
-
+    var zoomAmount = 0;
 
     switch( zoomDirection ) {
       case 'in':
@@ -320,12 +346,6 @@ window.requestAnimFrame = function(){
     }
 
     this.setZoom( this.zoomRatio + zoomAmount );
-
-    postCenterFull = this.translateFromLocalToFullsize( centerViewX, centerViewY );
-    dx = preCenterFull.x - postCenterFull.x;
-    dy = preCenterFull.y - postCenterFull.y;
-
-    this.scroll( -dx, -dy );
   };
 
   // receive pen event from server
