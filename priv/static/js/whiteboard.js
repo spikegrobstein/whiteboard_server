@@ -24,6 +24,9 @@ window.requestAnimFrame = function(){
     this.DEFAULT_WIDTH = 1920;
     this.DEFAULT_HEIGHT = 1080;
 
+    this.MAX_ZOOM = 1.58;
+    this.MIN_ZOOM = 0.25;
+
     // the zoom factor
     this.zoomRatio = 1;
 
@@ -271,12 +274,10 @@ window.requestAnimFrame = function(){
 
     // restrict to minimum and maximum zoom levels.
     if ( isNaN( newZoom ) ) { newZoom = 1; } // fail-safe; if zoom is bad, set it to 1.0
-    if ( newZoom > 2 ) { newZoom = 2; }      // max zoom is 2
-    if ( newZoom < .25 ) { newZoom = .25; }  // min zoom is .1
+    if ( newZoom > this.MAX_ZOOM ) { newZoom = this.MAX_ZOOM; }      // max zoom is 2
+    if ( newZoom < this.MIN_ZOOM ) { newZoom = this.MIN_ZOOM; }  // min zoom is .1
 
     zoomDelta = newZoom / this.zoomRatio;
-
-    console.log("zoom: " + newZoom + '(' + zoomDelta + ')');
 
     // translate the origin point to the point on the new image
     scaledOrigin.x = originPoint.x * zoomDelta;
