@@ -8,13 +8,18 @@ defmodule WhiteboardServer.Websocket do
   require :cowboy_req
   require :gen_server
 
+  require WhiteboardServer.User, as: User
+
   def init({:tcp, :http}, _req, _opts), do: { :upgrade, :protocol, :cowboy_websocket }
 
   def websocket_init(_transport_name, req, _opts) do
 
     # read the user field from URL
-    { user, _ } = :cowboy_req.qs_val("user", req, "anon")
+    { user_id, _ } = :cowboy_req.qs_val("user_id", req)
     { board_key, _ } = :cowboy_req.qs_val("board_key", req)
+
+    # FIXME: detect this error and act appropriately
+    { :ok, user }= User.find( user_id )
 
     # find the whiteboard
     { _, whiteboard } = :gen_server.call( :board_store, { :get_by_key, board_key } )
@@ -22,7 +27,7 @@ defmodule WhiteboardServer.Websocket do
     IO.puts "started whiteboard #{ inspect whiteboard }"
 
     # join board
-    :gen_server.cast( whiteboard, { :add_user, { self, user } })
+    :gen_server.cast( whiteboard, { :add_user, { self, user[:id], user[:email] } })
 
     { :ok, req, whiteboard }
   end
@@ -71,8 +76,8 @@ defmodule WhiteboardServer.Websocket do
 
         { key, counter, user_list } = :gen_server.call( whiteboard, :hello )
 
-        user_list = Enum.map( user_list, fn({ pid, nick }) ->
-          [ userId: inspect(pid), nick: nick ]
+        user_list = Enum.map( user_list, fn({ id, nick }) ->
+          [ userId: id, nick: nick ]
         end)
 
         send self, { :packet, { "hello", {}, [ key: key, userList: user_list, sequence: counter ] } }

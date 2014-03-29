@@ -58,11 +58,11 @@ defmodule WhiteboardServer.Board do
     add the given user to the user list
     broadcast to everyone that this user joined
   """
-  def handle_cast( { :add_user, { pid, nick } }, { key, counter, clients, data } ) do
-    IO.puts "add user: #{ inspect pid } - #{ nick }"
-    broadcast clients, { "user_join", {}, { inspect(pid), nick } }
+  def handle_cast( { :add_user, { pid, user_id, nick } }, { key, counter, clients, data } ) do
+    IO.puts "add user: #{ inspect pid } - #{ user_id } - #{ nick }"
+    broadcast clients, { "user_join", {}, { inspect(pid), user_id, nick } }
 
-    clients = add_client( clients, { pid, nick } )
+    clients = add_client( clients, { pid, user_id, nick } )
 
     { :noreply, { key, counter, clients, data } }
   end
@@ -85,7 +85,9 @@ defmodule WhiteboardServer.Board do
   def handle_call( :hello, _from, state ) do
     { key, counter, clients, _ } = state
 
-    { :reply, { key, counter, clients }, state }
+    user_list = make_user_list( clients )
+
+    { :reply, { key, counter, user_list }, state }
   end
 
   @doc """
@@ -94,17 +96,21 @@ defmodule WhiteboardServer.Board do
   def handle_call( :user_list, _from, state ) do
     { _, _, clients, _ } = state
 
-    { :reply, clients, state }
+    list = make_user_list( clients )
+
+    { :reply, list, state }
   end
 
   ## implementation functions
 
-  defp add_client( clients, { pid, nick } ) do
-    [{ pid, nick }|clients]
+  # add a client
+  defp add_client( clients, { pid, user_id, nick } ) do
+    [{ pid, user_id, nick }|clients]
   end
 
+  # delete a client by pid
   defp del_client( clients, pid_to_delete ) do
-    Enum.reject clients, fn({ pid, _nick }) ->
+    Enum.reject clients, fn({ pid, _id, _nick }) ->
       pid_to_delete == pid
     end
   end
@@ -114,7 +120,7 @@ defmodule WhiteboardServer.Board do
   # given the list of clients and well-formed packet
   # send all the clients the packet
   defp broadcast( clients, packet ) do
-    Enum.each clients, fn({ pid, _nick }) ->
+    Enum.each clients, fn({ pid, _id, _nick }) ->
       send pid, { :packet, packet }
     end
   end
@@ -128,7 +134,9 @@ defmodule WhiteboardServer.Board do
     IO.inspect { :ingest_draw, event, counter, payload }
     counter = counter + 1
 
-    payload = HashDict.put( payload, :userId, inspect(pid) )
+    { _pid, user_id, _nick } = client_for_pid( clients, pid )
+
+    payload = HashDict.put( payload, :userId, user_id )
     headers = HashDict.new( sequence: counter )
 
     # create the packet tuple
@@ -137,6 +145,26 @@ defmodule WhiteboardServer.Board do
     broadcast clients, packet
 
     { counter, [packet|data] }
+  end
+
+  defp client_for_pid( clients, pid ) do
+    Enum.find clients, fn(c) ->
+      { client_pid, _user_id, _nick } = c
+      client_pid == pid
+    end
+  end
+
+  # given the client list, build a list of users for the cilent
+  # this is a list of tuples containing { user_id, nick } without dupes.
+  defp make_user_list( clients ) do
+    clients
+      |> Enum.map(fn(c)->
+          { _pid, user_id, nick } = c
+          { user_id, nick }
+        end)
+      |> Enum.uniq(fn({ user_id, _ })->
+          user_id
+        end)
   end
 
   # stream the data to the given pid

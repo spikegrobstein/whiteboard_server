@@ -19,9 +19,7 @@
     data = xhr.response;
     data = JSON.parse( data );
 
-    username = data.email;
-
-    return "ws://" + window.location.host + '/websocket?user=' + username + '&board_key=' + boardKey;
+    return "ws://" + window.location.host + '/websocket?user_id=' + data.id + '&board_key=' + boardKey;
   }
 
   window.whiteboard = new Whiteboard( whiteboardWebsocketURL(), document.getElementById('whiteboard') );
