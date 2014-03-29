@@ -73,9 +73,11 @@ defmodule WhiteboardServer.Board do
     broadcast to everyone that they left
   """
   def handle_cast( { :del_user, pid }, { key, counter, clients, data } ) do
-    broadcast clients, { "user_leave", {}, { inspect(pid) } }
+    client = client_for_pid( clients, pid )
 
     clients = del_client( clients, pid )
+
+    broadcast_leave clients, client
 
     { :noreply, { key, counter, clients, data } }
   end
@@ -126,12 +128,21 @@ defmodule WhiteboardServer.Board do
     end
   end
 
+  # if user_id is in list of clients, don't broadcast
   defp broadcast_join( clients, { user_id, nick } ) do
-    # if user_id is in list of clients, don't broadcast
     count = Enum.count(clients, fn({_pid, id, _nick})-> id == user_id end)
 
     if count == 0 do
-      broadcast clients, { "user_join", {}, { user_id, nick } }
+      broadcast clients, { "user_join", {}, [ userId: user_id, nick: nick ] }
+    end
+  end
+
+  # if there are no users with this id in clients, then let everyone know
+  defp broadcast_leave( clients, { pid, id, nick }) do
+    count = Enum.count(clients, fn({ p, _, _ })-> p == pid end)
+
+    if count == 0 do
+      broadcast clients, { "user_leave", {}, [ userId: id ] }
     end
   end
 
