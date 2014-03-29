@@ -59,7 +59,7 @@
     .subscribe( 'user_join', function( _event, userInfo ) {
       addUser(userInfo);
     })
-    .subscribe( 'user_part', function( _event, userInfo ) {
+    .subscribe( 'user_leave', function( _event, userInfo ) {
       removeUser(userInfo);
     })
     .subscribe( 'receive_draw', function( _event, userInfo ) {
@@ -105,8 +105,15 @@
     window.userList.innerHTML = '';
   }
 
+  function userElementIdFor( user ) {
+    var userId = user.userId;
+
+    return "user_" + userId;
+  }
+
   function addUser( user ) {
-    var userId = user.userId.replace(/[^a-z0-9]/ig, ''),
+    console.log(user);
+    var userId = userElementIdFor( user ),
         nick = user.nick;
 
     console.log("add user: " + nick );
@@ -115,7 +122,7 @@
   window.addUser = addUser;
 
   function removeUser( user ) {
-    var userId = user.userId.replace(/[^a-z0-9]/ig, ''),
+    var userId = userElementIdFor( user ),
         userEle = document.getElementById(userId);
 
     window.userList.removeChild( userEle );

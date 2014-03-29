@@ -95,7 +95,7 @@
 
       case "user_list":
       case "user_join":
-      case "user_part":
+      case "user_leave":
         this.messageBus.broadcast( event, payload );
         break;
 
