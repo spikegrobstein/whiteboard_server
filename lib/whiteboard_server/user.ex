@@ -52,7 +52,7 @@ defmodule WhiteboardServer.User do
     { :error }
   end
 
-  def find( user_id ) do
+  def find( user_id ) when is_integer(user_id) do
     sql = '''
       select id, email, first, last from users where id = $1
     '''
@@ -65,6 +65,12 @@ defmodule WhiteboardServer.User do
       { :ok, _columns, [{ id, email, first, last }]  } ->
         { :ok, [id: id, email: email, first: first, last: last] }
     end
+  end
+
+  def find( user_id ) when is_bitstring(user_id) do
+    { id, _ } = Integer.parse(user_id)
+
+    find id
   end
 
   def find_by_email( email ) do
