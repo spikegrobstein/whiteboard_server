@@ -60,7 +60,8 @@ defmodule WhiteboardServer.Board do
   """
   def handle_cast( { :add_user, { pid, user_id, nick } }, { key, counter, clients, data } ) do
     IO.puts "add user: #{ inspect pid } - #{ user_id } - #{ nick }"
-    broadcast clients, { "user_join", {}, { inspect(pid), user_id, nick } }
+
+    broadcast_join clients, { user_id, nick }
 
     clients = add_client( clients, { pid, user_id, nick } )
 
@@ -122,6 +123,15 @@ defmodule WhiteboardServer.Board do
   defp broadcast( clients, packet ) do
     Enum.each clients, fn({ pid, _id, _nick }) ->
       send pid, { :packet, packet }
+    end
+  end
+
+  defp broadcast_join( clients, { user_id, nick } ) do
+    # if user_id is in list of clients, don't broadcast
+    count = Enum.count(clients, fn({_pid, id, _nick})-> id == user_id end)
+
+    if count == 0 do
+      broadcast clients, { "user_join", {}, { user_id, nick } }
     end
   end
 
