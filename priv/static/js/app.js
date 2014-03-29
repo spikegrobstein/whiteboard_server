@@ -63,10 +63,10 @@
       removeUser(userInfo);
     })
     .subscribe( 'receive_draw', function( _event, userInfo ) {
-      highlightUser( userInfo.userId, true );
+      highlightUser( userInfo, true );
     })
     .subscribe( 'receive_pen_up', function( _event, userInfo ) {
-      highlightUser( userInfo.userId, false )
+      highlightUser( userInfo, false )
     });
 
   var colorsEle = document.getElementById('pen-colors'),
@@ -128,8 +128,18 @@
     window.userList.removeChild( userEle );
   }
 
-  function highlightUser( id, enable ) {
-    console.log('highlight user: ' + id + ' - ' + enable);
+  function highlightUser( user, enable ) {
+    var userId = userElementIdFor( user ),
+        color = user.penColor,
+        userElement = document.getElementById(userId);
+
+    if ( enable ) {
+      // highlight
+      userElement.style.backgroundColor = color;
+    } else {
+      // unhighlight
+      userElement.style.backgroundColor = 'transparent';
+    }
   }
 
   var control_toggle_btn = document.getElementById('hideshow'),
