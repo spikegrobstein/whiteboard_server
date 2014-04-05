@@ -12,25 +12,31 @@
     no support
   </canvas>
 
-  <div id="controls">
-    <div id="message"></div>
-    <button id="hideshow">&gt;</button>
-    <form id="form" style="display:none">
-      <div id="pen-colors"></div>
-      <div>
-        <label>Color: </label>
-        <input type="text" id="pen-color-input" name="penColor" value="#FF0000" size="6" />
-      </div>
+  <div id="control-box">
+    <div id="control-box-bar">
+      <a href="#show-controls" id="control-box-button">|||</a>
+    </div>
 
-      <div>
-        <label>Width:</label>
-        <input type="text" id="pen-width-input" name="penWidth" value="4" size="6" />
-      </div>
+    <div id="control-container" style="display: none">
 
-      <h3>Users</h3>
-      <ul id="user-list"></ul>
-    </form>
+      <div id="message"></div>
+      <form id="form" >
+        <div id="pen-colors"></div>
+        <div>
+          <label>Color: </label>
+          <input type="text" id="pen-color-input" name="penColor" value="#FF0000" size="6" />
+        </div>
 
+        <div>
+          <label>Width:</label>
+          <input type="text" id="pen-width-input" name="penWidth" value="4" size="6" />
+        </div>
+
+        <h3>Users</h3>
+        <ul id="user-list"></ul>
+      </form>
+
+    </div>
   </div>
 
   <div style="display: none">
@@ -39,9 +45,11 @@
 
   <script>
     var imports = [
+          'sizzle.min',
           'message_bus',
           'whiteboard_client',
           'whiteboard',
+          'userlist',
           'app'
         ],
         i = 0;

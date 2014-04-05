@@ -1,7 +1,32 @@
-(function( window, document ) {
+(function( window, document, Sizzle ) {
 
-  // return the websocket URL to use
-  function whiteboardWebsocketURL() {
+  var App = function( whiteboardEle, controlsEle ) {
+    this.whiteboard = new Whiteboard( this.websocketURL(), whiteboardEle );
+    this.controls = controlsEle;
+    this.messageBus = this.whiteboard.messageBus;
+
+    this.statusEle = Sizzle('#status-message')[0];
+    this.userList = new UserList( Sizzle('#user-list')[0], this.messageBus );
+
+    this.DEFAULT_COLORS = [
+      '#FF0000', //red
+      '#00FF00',
+      '#0000FF',
+      '#FFFF00',
+      '#00FFFF',
+      '#FF00FF',
+      '#FFFFFF',
+      '#000000'
+    ];
+
+    this.initializeColors( this.DEFAULT_COLORS );
+
+    this.initializeControls();
+
+    this.initializeMessaging();
+  };
+
+  App.prototype.websocketURL = function() {
     var pathItems = window.location.pathname.split('/'),
         boardKey = null,
         username = null,
@@ -20,158 +45,102 @@
     data = JSON.parse( data );
 
     return "ws://" + window.location.host + '/websocket?user_id=' + data.id + '&board_key=' + boardKey;
-  }
+  };
 
-  window.whiteboard = new Whiteboard( whiteboardWebsocketURL(), document.getElementById('whiteboard') );
-  window.userList = document.getElementById('user-list');
+  App.prototype.initializeMessaging = function() {
+    this.messageBus
 
-  window.whiteboard.messageBus
     // whiteboard connection info
     .subscribe( 'ws_connected', function() {
-      var msg_ele = document.getElementById('message');
-
-      msg_ele.innerHTML = 'connected';
-    })
+      this.updateStatus('connected');
+    }.bind(this))
     .subscribe( 'ws_disconnected', function() {
-      var msg_ele = document.getElementById('message');
-
-      msg_ele.innerHTML = 'disconnected';
-    })
+      this.updateStatus('disconnected');
+    }.bind(this))
     .subscribe( 'ws_connection_error', function() {
-      var msg_ele = document.getElementById('message');
+      this.updateStatus('error');
+    }.bind(this))
+  };
 
-      msg_ele.innerHTML = 'error';
-    })
+  App.prototype.initializeListeners = function() {
+    // TODO: rewrite all this shit here. leverage some messageBus goodness.
+    Sizzle('#pen-width-input')[0].addEventListener( 'input', function() {
+      var value = this.value;
 
-    // userlist interaction
-    .subscribe( 'user_list', function( _event, users ) {
-      console.log({got_user_list: users});
+      value = parseInt(value);
 
-      var i, user;
-
-      clearUsers();
-
-      for ( i in users ) {
-        user = users[i];
-        addUser( user );
+      if ( value > 0 ) {
+        this.messageBus.broadcast( 'set_pen_width', value );
       }
-    })
-    .subscribe( 'user_join', function( _event, userInfo ) {
-      addUser(userInfo);
-    })
-    .subscribe( 'user_leave', function( _event, userInfo ) {
-      removeUser(userInfo);
-    })
-    .subscribe( 'receive_draw', function( _event, userInfo ) {
-      highlightUser( userInfo, true );
-    })
-    .subscribe( 'receive_pen_up', function( _event, userInfo ) {
-      highlightUser( userInfo, false )
     });
 
-  var colorsEle = document.getElementById('pen-colors'),
-      c,
-      colors = [
-        '#FF0000', //red
-        '#00FF00',
-        '#0000FF',
-        '#FFFF00',
-        '#00FFFF',
-        '#FF00FF',
-        '#FFFFFF',
-        '#000000'
-      ];
+    Sizzle('#pen-color-input')[0].addEventListener( 'input', function() {
+      var value = this.value;
 
-  for ( c in colors ) {
-    c = colors[c];
-    ele = document.createElement('li');
+      if ( value.match(/^[a-f0-9]{6}/i) ) {
+        this.messageBus.broadcast( 'set_pen_color', value );
+      }
+    });
+  };
 
-    ele.className = 'color';
-    ele.setAttribute('data-color', c);
-    ele.style.backgroundColor = c;
-    ele.addEventListener('click', setColor.bind(ele));
+  App.prototype.updateStatus = function( newStatus ) {
+    if ( ! this.statusEle ) { return; }
 
-    colorsEle.appendChild(ele);
-  }
+    this.statusEle.innerHTML = newStatus;
+  };
 
-  function setColor() {
+  App.prototype.initializeColors = function( colors ) {
+    var colorsEle = Sizzle('#pen-colors')[0],
+        c;
+
+    for ( c in colors ) {
+      c = colors[c];
+      ele = document.createElement('li');
+
+      ele.className = 'color';
+      ele.setAttribute('data-color', c);
+      ele.style.backgroundColor = c;
+      ele.addEventListener('click', this.setColor.bind(ele));
+
+      colorsEle.appendChild(ele);
+    }
+  };
+
+  //TODO: this should probably be a module function, not a prototype function.
+  App.prototype.setColor = function() {
     var color = this.getAttribute('data-color');
 
-    window.whiteboard.messageBus.broadcast( 'set_pen_color', color);
-    document.getElementById('pen-color-input').value = color;
+    this.messageBus.broadcast( 'set_pen_color', color);
+    Sizzle('#pen-color-input')[0].value = color;
   }
 
-  function clearUsers() {
-    window.userList.innerHTML = '';
+  App.prototype.initializeControls = function() {
+    var hideshowBar = document.getElementById('control-box-bar'),
+        hideshowButton = document.getElementById('control-box-button');
+
+    hideshowBar.addEventListener( 'click', this.toggleControls.bind(this) );
+
+    // move buton to correct spot
+    hideshowButton.style.top = (hideshowBar.offsetHeight / 2 - hideshowButton.offsetHeight / 2) + 'px';
   }
 
-  function userElementIdFor( user ) {
-    var userId = user.userId;
+  App.prototype.toggleControls = function(event) {
+    var hideshowButton = document.getElementById('control-box-button'),
+        controlContent = document.getElementById('control-container');
 
-    return "user_" + userId;
-  }
-
-  function addUser( user ) {
-    console.log(user);
-    var userId = userElementIdFor( user ),
-        nick = user.nick;
-
-    console.log("add user: " + nick );
-    window.userList.innerHTML += '<li id="' + userId + '">' + nick + '</li>';
-  }
-  window.addUser = addUser;
-
-  function removeUser( user ) {
-    var userId = userElementIdFor( user ),
-        userEle = document.getElementById(userId);
-
-    window.userList.removeChild( userEle );
-  }
-
-  function highlightUser( user, enable ) {
-    var userId = userElementIdFor( user ),
-        color = user.penColor,
-        userElement = document.getElementById(userId);
-
-    if ( enable ) {
-      // highlight
-      userElement.style.backgroundColor = color;
+    console.log('click');
+    event.preventDefault();
+    if ( hideshowButton.getAttribute('href') == '#show-controls' ) {
+      console.log('showing');
+      hideshowButton.setAttribute('href', '#hide-controls');
+      controlContent.style.display = 'block';
     } else {
-      // unhighlight
-      userElement.style.backgroundColor = 'transparent';
+      console.log('hiding');
+      hideshowButton.setAttribute('href', '#show-controls');
+      controlContent.style.display = 'none';
     }
-  }
+  };
 
-  var control_toggle_btn = document.getElementById('hideshow'),
-      tools_ele = document.getElementById('form');
+  window.app = new App( Sizzle('canvas#whiteboard')[0], Sizzle('#control-box')[0] );
 
-  control_toggle_btn.addEventListener( 'click', function() {
-    if ( this.innerHTML == 'X' ) {
-      this.innerHTML = '&gt;';
-      tools_ele.style.display = 'none';
-    } else {
-      this.innerHTML = 'X';
-      tools_ele.style.display = 'block';
-    }
-  });
-
-  // TODO: rewrite all this shit here. leverage some messageBus goodness.
-  document.getElementById('pen-width-input').addEventListener( 'input', function() {
-    var value = this.value;
-
-    value = parseInt(value);
-
-    if ( value > 0 ) {
-      window.whiteboard.messageBus.broadcast( 'set_pen_width', value );
-    }
-  });
-
-  document.getElementById('pen-color-input').addEventListener( 'input', function() {
-    var value = this.value;
-
-    if ( value.match(/^[a-f0-9]{6}/i) ) {
-      window.whiteboard.messageBus.broadcast( 'set_pen_color', value );
-    }
-  });
-
-})( window, document );
+})( window, document, Sizzle );

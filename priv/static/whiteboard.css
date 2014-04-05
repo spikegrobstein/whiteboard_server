@@ -5,20 +5,41 @@ body {
 }
 
 canvas#whiteboard {
-  float: left;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
   background-color: #fff;
 }
 
-#controls {
+#control-box {
   position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
   background-color: #ddd;
-  padding: 10px;
-  border-right: 1px solid black;
-  border-bottom: 1px solid black;
+  border-right: 1px solid #999;
+}
 
-  -webkit-border-bottom-right-radius: 10px;
-  -moz-border-radius-bottomright: 10px;
-  border-bottom-right-radius: 10px;
+#control-box-bar {
+  background-color: #ccc;
+  float: right;
+  height: 100%;
+}
+
+a#control-box-button {
+  position: relative;
+  background-color: #bbb;
+  color: #eee;
+  padding: 5px;
+
+  text-decoration: none;
+}
+
+a#control-box-button:hover {
+  background-color: #aaa;
+  color: ddd;
 }
 
 #pen-colors {
