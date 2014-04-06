@@ -1,4 +1,6 @@
 body {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 14px;
   margin: 0; padding: 0;
   background-color: white;
   height: 100%;
@@ -56,15 +58,17 @@ a#control-box-button:hover {
 }
 
 #user-list {
-  margin: 0;
-  padding: 0;
+  margin: 5px 25px 5px 5px;
+  padding: 5px;
+  background-color: white;
+  min-width: 150px;
 }
 
 #user-list li {
   list-style: none;
-  margin: 0;
+  margin: 5px 0;
   padding: 2px 4px;
+  border-bottom: 1px solid #aaa;
 
-  margin-left: 10px;
 }
 

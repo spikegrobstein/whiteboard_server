@@ -1,8 +1,10 @@
 (function( window, document, Sizzle) {
 
   var UserList = function( userListEle, messageBus ) {
-    this.userList = userListEle;
+    this.userListEle = userListEle;
     this.messageBus = messageBus;
+
+    this.users = {}; // hash of users, keyed by id
 
     this.initializeMessaging();
   };
@@ -19,14 +21,14 @@
 
       for ( i in users ) {
         user = users[i];
-        this.addUser( user );
+        this.addUser( new User(user) );
       }
     }.bind(this))
     .subscribe( 'user_join', function( _event, userInfo ) {
-      this.addUser(userInfo);
+      this.addUser( new User(userInfo) );
     }.bind(this))
     .subscribe( 'user_leave', function( _event, userInfo ) {
-      this.removeUser(userInfo);
+      this.removeUser( userInfo.userId );
     }.bind(this))
     .subscribe( 'receive_draw', function( _event, userInfo ) {
       this.highlightUser( userInfo, true );
@@ -41,22 +43,23 @@
   }
 
   UserList.prototype.clearUsers = function() {
-    this.userList.innerHTML = '';
+    this.users = {};
+    this.userListEle.innerHTML = '';
   }
 
   UserList.prototype.addUser = function( user ) {
-    var userId = this.userElementIdFor( user ),
-        nick = user.nick;
+    console.log("add user: " + user.nick );
 
-    console.log("add user: " + nick );
-    this.userList.innerHTML += '<li id="' + userId + '">' + nick + '</li>';
+    this.users[user.id] = user;
+
+    this.userListEle.appendChild( user.createElement() );
   }
 
   UserList.prototype.removeUser = function( user ) {
     var userId = userElementIdFor( user ),
         userEle = document.getElementById(userId);
 
-    this.userList.removeChild( userEle );
+    this.userListEle.removeChild( userEle );
   }
 
   UserList.prototype.highlightUser = function( user, enable ) {
@@ -73,6 +76,41 @@
     }
   };
 
+  var User = function( userObject ) {
+    this.nick = userObject.nick;
+    this.id = userObject.userId;
+
+    this.originalObject = userObject;
+
+    this._element = null;
+  };
+
+  User.prototype.elementId = function() {
+    return "user_" + this.id;
+  };
+
+  User.prototype.element = function() {
+    if ( ! this._element ) {
+      this._element = document.getElementById( this.elementId() );
+    }
+
+    return this._element;
+  }
+
+  User.prototype.createElement = function() {
+    var ele = document.createElement('li');
+
+    ele.id = this.elementId();
+    ele.innerHTML = this.nick;
+
+    this._element = ele;
+
+    console.log( ele );
+
+    return ele;
+  }
+
+  window.User = User;
   window.UserList = UserList;
 
 })( window, document, Sizzle );
