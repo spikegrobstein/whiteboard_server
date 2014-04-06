@@ -99,15 +99,15 @@
       ele.className = 'color';
       ele.setAttribute('data-color', c);
       ele.style.backgroundColor = c;
-      ele.addEventListener('click', this.setColor.bind(ele));
+      ele.addEventListener('click', this.setColor.bind(this));
 
       colorsEle.appendChild(ele);
     }
   };
 
   //TODO: this should probably be a module function, not a prototype function.
-  App.prototype.setColor = function() {
-    var color = this.getAttribute('data-color');
+  App.prototype.setColor = function( event ) {
+    var color = event.target.getAttribute('data-color');
 
     this.messageBus.broadcast( 'set_pen_color', color);
     Sizzle('#pen-color-input')[0].value = color;
