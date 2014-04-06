@@ -46,14 +46,15 @@ a#control-box-button:hover {
 
 #pen-colors {
   margin: 0;
-  width: 90px;
+  margin-top: 50px;
+  width: 150px;
 }
 
 .color {
   list-style: none;
   display: inline-block;
-  width: 20px;
-  height: 20px;
+  width: 35px;
+  height: 35px;
   margin: 0;
 }
 
