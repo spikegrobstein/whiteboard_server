@@ -48,8 +48,6 @@
   }
 
   UserList.prototype.addUser = function( user ) {
-    console.log("add user: " + user.nick );
-
     this.users[user.id] = user;
 
     this.userListEle.appendChild( user.createElement() );
@@ -105,8 +103,6 @@
     ele.innerHTML = this.nick;
 
     this._element = ele;
-
-    console.log( ele );
 
     return ele;
   }

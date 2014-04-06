@@ -120,6 +120,7 @@
         hideshowButton = document.getElementById('control-box-button');
 
     hideshowBar.addEventListener( 'click', this.toggleControls.bind(this) );
+    hideshowBar.addEventListener( 'touchstart', this.toggleControls.bind(this) );
 
     // move buton to correct spot
     hideshowButton.style.top = (hideshowBar.offsetHeight / 2 - hideshowButton.offsetHeight / 2) + 'px';
@@ -129,14 +130,11 @@
     var hideshowButton = document.getElementById('control-box-button'),
         controlContent = document.getElementById('control-container');
 
-    console.log('click');
     event.preventDefault();
     if ( hideshowButton.getAttribute('href') == '#show-controls' ) {
-      console.log('showing');
       hideshowButton.setAttribute('href', '#hide-controls');
       controlContent.style.display = 'block';
     } else {
-      console.log('hiding');
       hideshowButton.setAttribute('href', '#show-controls');
       controlContent.style.display = 'none';
     }
