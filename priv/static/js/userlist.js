@@ -55,11 +55,8 @@
     this.userListEle.appendChild( user.createElement() );
   }
 
-  UserList.prototype.removeUser = function( user ) {
-    var userId = userElementIdFor( user ),
-        userEle = document.getElementById(userId);
-
-    this.userListEle.removeChild( userEle );
+  UserList.prototype.removeUser = function( userId ) {
+    this.userListEle.removeChild( this.users[userId].element() );
   }
 
   UserList.prototype.highlightUser = function( user, enable ) {
