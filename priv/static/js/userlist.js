@@ -64,6 +64,10 @@
         color = user.penColor,
         userElement = Sizzle('#' + userId)[0];
 
+    // if userElement is non-existent, then bail
+    // this happens during replay if the user is not connected.
+    if ( ! userElement ) { return; }
+
     if ( enable ) {
       // highlight
       userElement.style.backgroundColor = color;
