@@ -49,17 +49,16 @@
 
   App.prototype.initializeMessaging = function() {
     this.messageBus
-
-    // whiteboard connection info
-    .subscribe( 'ws_connected', function() {
-      this.updateStatus('connected');
-    }.bind(this))
-    .subscribe( 'ws_disconnected', function() {
-      this.updateStatus('disconnected');
-    }.bind(this))
-    .subscribe( 'ws_connection_error', function() {
-      this.updateStatus('error');
-    }.bind(this))
+      // whiteboard connection info
+      .subscribe( 'ws_connected', function() {
+        this.updateStatus('connected');
+      }.bind(this))
+      .subscribe( 'ws_disconnected', function() {
+        this.updateStatus('disconnected');
+      }.bind(this))
+      .subscribe( 'ws_connection_error', function() {
+        this.updateStatus('error');
+      }.bind(this))
   };
 
   App.prototype.initializeListeners = function() {
