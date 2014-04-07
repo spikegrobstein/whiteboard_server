@@ -139,7 +139,7 @@ defmodule WhiteboardServer.Board do
 
   # if there are no users with this id in clients, then let everyone know
   defp broadcast_leave( clients, { pid, id, nick }) do
-    count = Enum.count(clients, fn({ p, _, _ })-> p == pid end)
+    count = Enum.count(clients, fn({ _, user_id, _ })-> user_id == id end)
 
     if count == 0 do
       broadcast clients, { "user_leave", {}, [ userId: id ] }
