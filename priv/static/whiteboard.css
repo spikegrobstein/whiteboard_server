@@ -44,24 +44,27 @@ a#control-box-button:hover {
   color: ddd;
 }
 
+#control-container {
+  padding: 10px;
+}
+
 #pen-colors {
   margin: 0;
   margin-top: 50px;
-  width: 150px;
+  width: 160px;
 }
 
 .color {
   list-style: none;
   display: inline-block;
-  width: 35px;
-  height: 35px;
+  width: 40px;
+  height: 40px;
   margin: 0;
 }
 
 #user-list {
   margin: 5px 25px 5px 5px;
   padding: 5px;
-  background-color: white;
   min-width: 150px;
 }
 
