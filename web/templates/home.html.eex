@@ -36,7 +36,7 @@
       <ul class="list-unstyled">
       <%= Enum.map @whiteboards, fn(whiteboard) -> %>
         <li>
-          <a href="/whiteboards/<%= whiteboard[:key] %>">
+          <a href="/whiteboards/<%= whiteboard[:key] %>" target="_blank">
             <%= whiteboard[:name] %>
           </a>
         </li>
