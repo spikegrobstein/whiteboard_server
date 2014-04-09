@@ -59,6 +59,9 @@
       .subscribe( 'ws_connection_error', function() {
         this.updateStatus('error');
       }.bind(this))
+      .subscribe( 'ui.status', function( _type, msg ) {
+        this.updateStatus( msg );
+      }.bind(this));
   };
 
   App.prototype.initializeListeners = function() {

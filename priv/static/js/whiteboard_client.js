@@ -7,6 +7,8 @@
 
     this.currentSequence = 0; // sanity checking
 
+    this.waitingForSequence = null; // used for tracking batch loads
+
     // tracking reconnects
     this.connectionCount = 0;
     this.connectionDelay = 0;
@@ -154,6 +156,12 @@
 
     this.currentSequence = sequence;
 
+    if ( this.currentSequence == this.waitingForSequence ) {
+      // we finished doing a batch load.
+      this.messageBus.broadcast( 'ui.status', 'data loaded.' );
+      this.waitingForSequence = null;
+    }
+
     return true;
   };
 
@@ -161,6 +169,9 @@
    */
   WhiteboardClient.prototype.requestUpdateRange = function( from, to ) {
     console.log("Requensting from " + from + ' to ' + to );
+
+    this.messageBus.broadcast( 'ui.status', 'loading data...' );
+    this.waitingForSequence = to;
 
     this.send( 'get_range', { from: from, to: to } );
   };

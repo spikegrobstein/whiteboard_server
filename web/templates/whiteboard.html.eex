@@ -12,6 +12,8 @@
     no support
   </canvas>
 
+  <div id="status-message"></div>
+
   <div id="control-box">
     <div id="control-box-bar">
       <a href="#show-controls" id="control-box-button">|||</a>
