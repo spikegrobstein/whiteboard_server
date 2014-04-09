@@ -6,6 +6,7 @@
     this.messageBus = this.whiteboard.messageBus;
 
     this.statusEle = Sizzle('#status-message')[0];
+    this.statusClearer = null;
     this.userList = new UserList( Sizzle('#user-list')[0], this.messageBus );
 
     this.DEFAULT_COLORS = [
@@ -89,7 +90,23 @@
     if ( ! this.statusEle ) { return; }
 
     this.statusEle.innerHTML = newStatus;
+    this.statusEle.style.display = 'block';
+
+    if ( this.statusClearer ) {
+      clearTimeout( this.statusClearer );
+    }
+
+    this.statusClearer = setTimeout( function() {
+      this.clearStatus();
+    }.bind(this), 2000);
   };
+
+  App.prototype.clearStatus = function() {
+    if ( ! this.statusEle ) { return; }
+
+    this.statusEle.style.display = 'none';
+    this.statusEle.innerHTML = '';
+  }
 
   App.prototype.initializeColors = function( colors ) {
     var colorsEle = Sizzle('#pen-colors')[0],
