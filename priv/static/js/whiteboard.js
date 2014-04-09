@@ -38,6 +38,7 @@ window.requestAnimFrame = function(){
     this.updateScaledImage();
 
     this.whiteboardCtx = this.whiteboard.getContext('2d');
+    this.whiteboardCtx.fillStyle = this.pattern; // only need to set this once. OPTIMIZATION
 
     this.pattern = this.createPattern();
 
@@ -192,7 +193,6 @@ window.requestAnimFrame = function(){
     // the width/height of the visible section of the source image
     // based on the whiteboard's dimensions (with zoom taken into account)
 
-    this.whiteboardCtx.fillStyle = this.pattern;
     this.whiteboardCtx.fillRect( 0, 0, this.whiteboard.width, this.whiteboard.height );
 
     this.whiteboardCtx.drawImage(
