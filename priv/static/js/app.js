@@ -60,8 +60,11 @@
       .subscribe( 'ws_connection_error', function() {
         this.updateStatus('error');
       }.bind(this))
-      .subscribe( 'ui.status', function( _type, msg ) {
-        this.updateStatus( msg );
+      .subscribe( 'batch.start', function() {
+        this.updateStatus( 'loading data...' );
+      }.bind(this))
+      .subscribe( 'batch.finish', function() {
+        this.updateStatus( 'load complete!' );
       }.bind(this));
   };
 

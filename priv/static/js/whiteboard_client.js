@@ -158,7 +158,7 @@
 
     if ( this.currentSequence == this.waitingForSequence ) {
       // we finished doing a batch load.
-      this.messageBus.broadcast( 'ui.status', 'data loaded.' );
+      this.messageBus.broadcast( 'batch.finish' );
       this.waitingForSequence = null;
     }
 
@@ -170,7 +170,8 @@
   WhiteboardClient.prototype.requestUpdateRange = function( from, to ) {
     console.log("Requensting from " + from + ' to ' + to );
 
-    this.messageBus.broadcast( 'ui.status', 'loading data...' );
+    this.messageBus.broadcast( 'batch.start', { from: from, to: to } );
+
     this.waitingForSequence = to;
 
     this.send( 'get_range', { from: from, to: to } );

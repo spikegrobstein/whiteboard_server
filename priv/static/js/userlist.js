@@ -5,6 +5,7 @@
     this.messageBus = messageBus;
 
     this.users = {}; // hash of users, keyed by id
+    this.batchDrawing = false;
 
     this.initializeMessaging();
   };
@@ -35,7 +36,13 @@
     }.bind(this))
     .subscribe( 'receive_pen_up', function( _event, userInfo ) {
       this.highlightUser( userInfo, false )
-    }.bind(this));
+    }.bind(this))
+    .subscribe( 'batch.start', function() {
+      this.batchDrawing = true;
+    }.bind(this))
+    .subscribe( 'batch.finish', function() {
+      this.batchDrawing = false;
+    }.bind(this))
   };
 
   UserList.prototype.userElementIdFor = function( user ) {
@@ -64,7 +71,7 @@
 
     // if userElement is non-existent, then bail
     // this happens during replay if the user is not connected.
-    if ( ! userElement ) { return; }
+    if ( ! userElement || this.batchDrawing ) { return; }
 
     if ( enable ) {
       // highlight

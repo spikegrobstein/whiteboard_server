@@ -57,6 +57,7 @@ window.requestAnimFrame = function(){
     this.penStatuses = {}; // hash keyed by userId
 
     this.dirtyBuffer = true; // for deciding whether screen needs to update
+    this.batchDrawing = false; // don't slow down while doing mass update.
 
     // some initialization functions
     this.resizeCanvasToWindow();
@@ -76,6 +77,12 @@ window.requestAnimFrame = function(){
                           }.bind(this))
                           .subscribe( 'set_pen_width', function( _event, penWidth ) {
                             this.penWidth = penWidth;
+                          }.bind(this))
+                          .subscribe( 'batch.start', function() {
+                            this.batchDrawing = true;
+                          }.bind(this))
+                          .subscribe( 'batch.finish', function() {
+                            this.batchDrawing = false;
                           }.bind(this));
 
    return messageBus;
@@ -169,7 +176,7 @@ window.requestAnimFrame = function(){
     window.requestAnimFrame( this.drawLoop.bind(this) );
 
     // if the buffer is not dirty, then no need to redraw anything.
-    if ( ! this.dirtyBuffer ) { return; }
+    if ( ! this.dirtyBuffer || this.batchDrawing ) { return; }
 
     // mark buffer as not dirty
     // do this as soon as possible so a future update doesn't mark this as dirty before the screen is updated
