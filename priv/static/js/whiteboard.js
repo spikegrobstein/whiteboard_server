@@ -38,9 +38,9 @@ window.requestAnimFrame = function(){
     this.updateScaledImage();
 
     this.whiteboardCtx = this.whiteboard.getContext('2d');
-    this.whiteboardCtx.fillStyle = this.pattern; // only need to set this once. OPTIMIZATION
 
     this.pattern = this.createPattern();
+    this.whiteboardCtx.fillStyle = this.pattern; // only need to set this once. OPTIMIZATION
 
     // the scroll offsets in screen dimensions
     this.scrollX = 0;
@@ -193,6 +193,7 @@ window.requestAnimFrame = function(){
     // the width/height of the visible section of the source image
     // based on the whiteboard's dimensions (with zoom taken into account)
 
+    this.whiteboardCtx.fillStyle = this.pattern; // only need to set this once. OPTIMIZATION
     this.whiteboardCtx.fillRect( 0, 0, this.whiteboard.width, this.whiteboard.height );
     this.updateScaledImage();
 
