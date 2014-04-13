@@ -89,9 +89,16 @@ window.requestAnimFrame = function(){
    return messageBus;
   };
 
+  /*
+   * given a width and height, create a new image and return that image
+   * optionally pass it a replaceImage which will prevent the creation of a new
+   * canvas element with a new imageContext.
+   */
   Whiteboard.prototype.createImage = function( width, height, replaceImage ) {
     var image, ctx;
 
+    // if a replaceImage was passed, update it in place
+    // this will only happen if the replaceImage is the same width/height of the image we're creating
     if ( replaceImage && replaceImage.width == width && replaceImage.height == height ) {
       image = replaceImage.image;
       ctx = replaceImage.ctx;
@@ -103,6 +110,7 @@ window.requestAnimFrame = function(){
       image.height = height;
     }
 
+    // fill it with white
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, width, height);
 
@@ -114,6 +122,10 @@ window.requestAnimFrame = function(){
     };
   };
 
+  /*
+   * Given an image and zoom ratio, return a new image object scaled accordingly
+   * if passing an oldImage object, it will pass that to this.createImage().
+   */
   Whiteboard.prototype.scaleImage = function( imageStruct, zoomRatio, oldImage ) {
     var image = this.createImage( Math.round(imageStruct.width * zoomRatio), Math.round(imageStruct.height * zoomRatio), oldImage );
 
@@ -136,6 +148,9 @@ window.requestAnimFrame = function(){
     return image;
   };
 
+  /*
+   * Take this.fullsizeImage and scale it down and set this.scaledImage
+   */
   Whiteboard.prototype.updateScaledImage = function() {
     this.scaledImage = this.scaleImage( this.fullsizeImage, this.zoomRatio, this.scaledImage );
   }
