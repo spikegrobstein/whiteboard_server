@@ -33,15 +33,33 @@
         </p>
       </div>
     <% else %>
-      <ul class="list-unstyled">
+      <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
       <%= Enum.map @whiteboards, fn(whiteboard) -> %>
-        <li>
-          <a href="/whiteboards/<%= whiteboard[:key] %>" target="_blank">
-            <%= whiteboard[:name] %>
-          </a>
-        </li>
+        <tr>
+          <td>
+            <a href="/whiteboards/<%= whiteboard[:key] %>" target="_blank">
+              <%= whiteboard[:name] %>
+            </a>
+            <button type="button" class="pull-right btn btn-default btn-xs">
+              <span class="glyphicon glyphicon-send"></span> Invite
+            </button>
+          </td>
+          <td>
+            <button type="button" class="pull-right btn btn-danger btn-xs">
+              <span class="glyphicon glyphicon-trash"></span>
+            </button>
+          </td>
+        </tr>
       <% end %>
-      </ul>
+      </tbody>
+      </table>
     <% end %>
   </div>
 
