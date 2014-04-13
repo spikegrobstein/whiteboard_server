@@ -156,6 +156,10 @@ window.requestAnimFrame = function(){
   }
 
 
+  /*
+   * Create a pattern using the main whiteboard context.
+   * this is used when drawing the grey background.
+   */
   Whiteboard.prototype.createPattern = function() {
     var patternImg = document.getElementById('undefined-background'),
         pattern = this.whiteboardCtx.createPattern( patternImg, 'repeat' );
@@ -163,7 +167,9 @@ window.requestAnimFrame = function(){
     return pattern;
   };
 
-  // resizes the onscreen canvas in the DOM to the size of the window
+  /*
+   * resize the whiteboard canvas to the size of the window.
+   */
   Whiteboard.prototype.resizeCanvasToWindow = function() {
     // resize the canvas a bit
     var body = document.getElementsByTagName('body')[0],
