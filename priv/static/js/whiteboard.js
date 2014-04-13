@@ -182,21 +182,21 @@ window.requestAnimFrame = function(){
 
   // convenience method for adding event listener to the whiteboard canvas element
   Whiteboard.prototype.handle = function( eventName, callback ) {
-    this.whiteboard.addEventListener( eventName, callback, false );
+    this.whiteboard.addEventListener( eventName, callback.bind(this), false );
   };
 
   // hook into all the event handlers
   Whiteboard.prototype.initializeListeners = function() {
     // touch
-    this.handle( 'touchstart', this.handleTouchStart.bind(this) );
-    this.handle( 'touchend',   this.handleTouchEnd.bind(this)   );
-    this.handle( 'touchmove',  this.handleTouchMove.bind(this)  );
+    this.handle( 'touchstart', this.handleTouchStart );
+    this.handle( 'touchend',   this.handleTouchEnd   );
+    this.handle( 'touchmove',  this.handleTouchMove  );
 
     // mouse
-    this.handle( 'mousedown',  this.handleMouseDown.bind(this)  );
-    this.handle( 'mouseup',    this.handleMouseUp.bind(this)    );
-    this.handle( 'mousemove',  this.handleMouseMove.bind(this)  );
-    this.handle( 'mousewheel', this.handleMouseWheel.bind(this) );
+    this.handle( 'mousedown',  this.handleMouseDown  );
+    this.handle( 'mouseup',    this.handleMouseUp    );
+    this.handle( 'mousemove',  this.handleMouseMove  );
+    this.handle( 'mousewheel', this.handleMouseWheel );
 
     window.addEventListener( 'keydown', this.handleKeyDown.bind(this) );
 
