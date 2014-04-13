@@ -199,6 +199,13 @@ window.requestAnimFrame = function(){
     this.handle( 'mousewheel', this.handleMouseWheel.bind(this) );
 
     window.addEventListener( 'keydown', this.handleKeyDown.bind(this) );
+
+    // resize the canvas when the window is resized.
+    window.onresize = function() {
+      this.resizeCanvasToWindow();
+      this.dirtyBuffer = true;
+      return true;
+    }.bind(this);
   };
 
   Whiteboard.prototype.drawLoop = function() {
