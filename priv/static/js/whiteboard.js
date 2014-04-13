@@ -194,6 +194,7 @@ window.requestAnimFrame = function(){
     // based on the whiteboard's dimensions (with zoom taken into account)
 
     this.whiteboardCtx.fillRect( 0, 0, this.whiteboard.width, this.whiteboard.height );
+    this.updateScaledImage();
 
     this.whiteboardCtx.drawImage(
       this.scaledImage.image,
@@ -262,7 +263,6 @@ window.requestAnimFrame = function(){
     scaledOrigin.y = originPoint.y * zoomDelta;
 
     this.zoomRatio = newZoom;
-    this.updateScaledImage();
 
     this.scrollX -= scaledOrigin.x - originPoint.x;
     this.scrollY -= scaledOrigin.y - originPoint.y;
@@ -345,8 +345,6 @@ window.requestAnimFrame = function(){
     }
 
     this.penStatuses[message.userId] = { x: message.x, y: message.y };
-
-    this.updateScaledImage();
 
     this.dirtyBuffer = true;
   };
