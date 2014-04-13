@@ -89,12 +89,19 @@ window.requestAnimFrame = function(){
    return messageBus;
   };
 
-  Whiteboard.prototype.createImage = function( width, height ) {
-    var image = document.createElement('canvas'),
-        ctx = image.getContext('2d');
+  Whiteboard.prototype.createImage = function( width, height, replaceImage ) {
+    var image, ctx;
 
-    image.width = width;
-    image.height = height;
+    if ( replaceImage && replaceImage.width == width && replaceImage.height == height ) {
+      image = replaceImage.image;
+      ctx = replaceImage.ctx;
+    } else {
+      image = document.createElement('canvas'),
+      ctx = image.getContext('2d');
+
+      image.width = width;
+      image.height = height;
+    }
 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, width, height);
@@ -107,8 +114,8 @@ window.requestAnimFrame = function(){
     };
   };
 
-  Whiteboard.prototype.scaleImage = function( imageStruct, zoomRatio ) {
-    var image = this.createImage( Math.round(imageStruct.width * zoomRatio), Math.round(imageStruct.height * zoomRatio) );
+  Whiteboard.prototype.scaleImage = function( imageStruct, zoomRatio, oldImage ) {
+    var image = this.createImage( Math.round(imageStruct.width * zoomRatio), Math.round(imageStruct.height * zoomRatio), oldImage );
 
     image.ctx.drawImage(
       imageStruct.image,
@@ -130,7 +137,7 @@ window.requestAnimFrame = function(){
   };
 
   Whiteboard.prototype.updateScaledImage = function() {
-    this.scaledImage = this.scaleImage( this.fullsizeImage, this.zoomRatio );
+    this.scaledImage = this.scaleImage( this.fullsizeImage, this.zoomRatio, this.scaledImage );
   }
 
 
