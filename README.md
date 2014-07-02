@@ -11,6 +11,10 @@ See `Rakefile` and `migrations` directory for database stuffs.
 
 If anyone wants to take this thing over, that would be dope.
 
+A slightly out-dated version of this code is still live @ whiteboard.spike.cx. Sign up
+for an account and create a whiteboard... then share the link with a friend who is also
+logged in (it's super alpha!)
+
 Resources:
 
 * [Elixir website](http://elixir-lang.org/)
